@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Customers</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left"><h2>Khách hàng</h2><p>5,891 khách hàng đã đăng ký</p></div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Đã xuất danh sách','success')">Xuất CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-customer')">+ Thêm KH</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+      <div class="stat-card animate-fade-up"><div class="stat-header"><div class="stat-icon" style="background:var(--success-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><circle cx="10" cy="8" r="4" stroke="#3ECF8E" stroke-width="1.2"/><path d="M4 17c0-3.5 2.5-5 6-5s6 1.5 6 5" stroke="#3ECF8E" stroke-width="1.2" stroke-linecap="round"/></svg></div><span class="stat-trend up">▲ 5.2%</span></div><div class="stat-value">4,320</div><div class="stat-label">Người thuê xe</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.05s"><div class="stat-header"><div class="stat-icon" style="background:var(--accent-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M4 16V8l6-4 6 4v8" stroke="#C8A45C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="7" y="12" width="6" height="4" rx=".5" stroke="#C8A45C" stroke-width="1"/></svg></div><span class="stat-trend up">▲ 12%</span></div><div class="stat-value">1,571</div><div class="stat-label">Chủ xe (Host)</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.1s"><div class="stat-header"><div class="stat-icon" style="background:var(--info-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><circle cx="7" cy="8" r="3" stroke="#5BA4F5" stroke-width="1.2"/><circle cx="14" cy="8" r="3" stroke="#5BA4F5" stroke-width="1.2"/><path d="M1 17c0-3 2-4.5 6-4.5M13 17c0-3-2-4.5-6-4.5" stroke="#5BA4F5" stroke-width="1" stroke-linecap="round"/></svg></div></div><div class="stat-value">892</div><div class="stat-label">Cả hai vai trò</div></div>
+    </div>
+
+    <!-- Tabs & Table -->
+    <div class="card animate-fade-up" style="animation-delay:.15s">
+      <div style="padding:20px 24px 0">
+        <div class="tabs">
+          <button class="tab active" onclick="filterCustomers('all',this)">Tất cả</button>
+          <button class="tab" onclick="filterCustomers('renter',this)">Người thuê</button>
+          <button class="tab" onclick="filterCustomers('host',this)">Chủ xe</button>
+          <button class="tab" onclick="filterCustomers('both',this)">Cả hai</button>
+        </div>
+      </div>
+      <div style="padding:0 24px 24px" class="table-wrapper">
+        <table>
+          <thead><tr><th>Khách hàng</th><th>SĐT</th><th>Vai trò</th><th>Booking</th><th>Doanh thu</th><th>Đánh giá</th><th>Tham gia</th><th>Trạng thái</th></tr></thead>
+          <tbody id="customer-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-add-customer" onclick="if(event.target===this)closeModal('modal-add-customer')">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Thêm khách hàng</h3><button class="modal-close" onclick="closeModal('modal-add-customer')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">Họ tên</label><input class="form-input" placeholder="Nguyễn Văn A"></div><div class="form-group"><label class="form-label">SĐT</label><input class="form-input" placeholder="0901234567"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="email@example.com"></div><div class="form-group"><label class="form-label">Vai trò</label><select class="form-select"><option>Người thuê</option><option>Chủ xe</option><option>Cả hai</option></select></div></div>
+      <div class="form-group"><label class="form-label">CCCD/CMND</label><input class="form-input" placeholder="Số CCCD"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-add-customer')">Hủy</button><button class="btn btn-primary" onclick="closeModal('modal-add-customer');showToast('Thêm khách hàng thành công!')">Thêm</button></div>
+  </div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('customers');
+document.getElementById('header-root').innerHTML = renderHeader('Customers', 'Quản lý khách hàng');
+
+const customers = [
+  { name:'Trần Hưng', init:'TH', col:'var(--info)', phone:'0901234567', role:'renter', bookings:12, revenue:38400000, rating:4.8, joined:'01/2024', status:'active' },
+  { name:'Mai Linh', init:'ML', col:'var(--success)', phone:'0912345678', role:'both', bookings:8, revenue:62100000, rating:4.9, joined:'11/2023', status:'active' },
+  { name:'Phạm Duy', init:'PD', col:'var(--accent)', phone:'0923456789', role:'renter', bookings:5, revenue:22500000, rating:4.5, joined:'03/2024', status:'active' },
+  { name:'Nguyễn An', init:'NA', col:'var(--danger)', phone:'0934567890', role:'host', bookings:0, revenue:45800000, rating:4.7, joined:'06/2023', status:'active' },
+  { name:'Lê Thảo', init:'LT', col:'var(--info)', phone:'0945678901', role:'renter', bookings:3, revenue:6300000, rating:4.2, joined:'02/2024', status:'blocked' },
+  { name:'Hoàng Nam', init:'HN', col:'var(--warning)', phone:'0956789012', role:'both', bookings:15, revenue:85200000, rating:4.9, joined:'08/2023', status:'active' },
+  { name:'Bùi Hoa', init:'BH', col:'var(--success)', phone:'0967890123', role:'host', bookings:0, revenue:31500000, rating:4.6, joined:'10/2023', status:'active' },
+  { name:'Võ Trang', init:'VT', col:'var(--accent)', phone:'0978901234', role:'renter', bookings:7, revenue:8400000, rating:4.3, joined:'04/2024', status:'active' },
+];
+
+const roleLabels = { renter:'Người thuê', host:'Chủ xe', both:'Cả hai' };
+const roleStyles = { renter:'tag-p2p', host:'tag-self', both:'tag-chauffeur' };
+
+function renderCustomers(data) {
+  document.getElementById('customer-table').innerHTML = data.map(c => `
+    <tr>
+      <td><div class="flex items-center gap-12">
+        <div class="avatar avatar-md" style="background:${c.col}15;color:${c.col}">${c.init}</div>
+        <div><div style="font-weight:500">${c.name}</div><div style="font-size:11px;color:var(--text-muted)">${c.role === 'host' ? 'Host' : 'Renter'}${c.role==='both'?' & Host':''}</div></div>
+      </div></td>
+      <td style="color:var(--text-secondary)">${c.phone}</td>
+      <td><span class="tag ${roleStyles[c.role]}">${roleLabels[c.role]}</span></td>
+      <td>${c.bookings}</td>
+      <td><span class="font-display" style="font-weight:500;color:var(--accent)">${formatVND(c.revenue)}</span></td>
+      <td>⭐ ${c.rating}</td>
+      <td style="color:var(--text-muted)">${c.joined}</td>
+      <td><span class="badge ${c.status==='active'?'badge-active':'badge-cancelled'}">${c.status==='active'?'Hoạt động':'Bị khóa'}</span></td>
+    </tr>`).join('');
+}
+
+function filterCustomers(role, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = role === 'all' ? customers : customers.filter(c => c.role === role);
+  renderCustomers(filtered);
+}
+
+renderCustomers(customers);
+</script>
+</body>
+</html>

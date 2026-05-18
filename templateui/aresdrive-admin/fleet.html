@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Fleet</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .fleet-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all var(--transition); }
+    .fleet-card:hover { border-color: var(--border-hover); }
+    .fleet-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .fleet-name { font-size: 15px; font-weight: 600; }
+    .fleet-plate { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .fleet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .fleet-stat { text-align: center; padding: 10px 6px; background: rgba(255,255,255,0.02); border-radius: var(--radius-xs); border: 1px solid var(--border); }
+    .fleet-stat-val { font-family: var(--font-display); font-size: 16px; font-weight: 600; }
+    .fleet-stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .maint-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .maint-fill { height: 100%; border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left"><h2>Fleet — Xe công ty</h2><p>Quản lý đội xe của AresDrive</p></div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm">Lịch bảo trì</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-fleet')">+ Thêm xe</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card animate-fade-up"><div class="stat-value" style="font-size:24px;color:var(--accent)">98</div><div class="stat-label">Tổng xe sở hữu</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.05s"><div class="stat-value text-success" style="font-size:24px">72</div><div class="stat-label">Đang cho thuê</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.1s"><div class="stat-value text-info" style="font-size:24px">18</div><div class="stat-label">Sẵn sàng</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.15s"><div class="stat-value text-warning" style="font-size:24px">8</div><div class="stat-label">Đang bảo trì</div></div>
+    </div>
+
+    <div class="fleet-grid" id="fleet-grid"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-add-fleet" onclick="if(event.target===this)closeModal('modal-add-fleet')">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header"><h3 class="modal-title">Thêm xe vào Fleet</h3><button class="modal-close" onclick="closeModal('modal-add-fleet')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">Tên xe</label><input class="form-input" placeholder="Toyota Camry 2024"></div><div class="form-group"><label class="form-label">Biển số</label><input class="form-input" placeholder="51A-888.99"></div></div>
+      <div class="form-row-3"><div class="form-group"><label class="form-label">Giá mua</label><input class="form-input" type="number" placeholder="VNĐ"></div><div class="form-group"><label class="form-label">Ngày mua</label><input class="form-input" type="date"></div><div class="form-group"><label class="form-label">Bảo hiểm đến</label><input class="form-input" type="date"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Giá thuê/ngày</label><input class="form-input" type="number"></div><div class="form-group"><label class="form-label">KM hiện tại</label><input class="form-input" type="number"></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-add-fleet')">Hủy</button><button class="btn btn-primary" onclick="closeModal('modal-add-fleet');showToast('Đã thêm xe vào fleet!')">Thêm</button></div>
+  </div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('fleet');
+document.getElementById('header-root').innerHTML = renderHeader('Fleet', 'Quản lý đội xe công ty');
+
+const fleet = [
+  { name:'Toyota Camry 2024', plate:'51A-888.99', status:'rented', price:800000, km:12500, trips:47, revenue:37600000, maintPct:65, nextMaint:'15/05/2026' },
+  { name:'Mercedes S450 2024', plate:'51H-001.23', status:'rented', price:2500000, km:8200, trips:18, revenue:45000000, maintPct:82, nextMaint:'01/05/2026' },
+  { name:'VinFast VF8 2024', plate:'51K-567.89', status:'available', price:750000, km:15800, trips:55, revenue:41250000, maintPct:45, nextMaint:'20/04/2026' },
+  { name:'Mazda CX-5 2024', plate:'51F-111.22', status:'available', price:850000, km:9400, trips:41, revenue:34850000, maintPct:70, nextMaint:'10/05/2026' },
+  { name:'Toyota Fortuner 2024', plate:'51B-777.88', status:'rented', price:1200000, km:18600, trips:36, revenue:43200000, maintPct:30, nextMaint:'12/04/2026' },
+  { name:'Honda City 2023', plate:'51C-222.33', status:'available', price:600000, km:22000, trips:63, revenue:37800000, maintPct:55, nextMaint:'25/04/2026' },
+  { name:'BMW X3 2024', plate:'51D-999.00', status:'maintenance', price:1800000, km:6100, trips:12, revenue:21600000, maintPct:15, nextMaint:'Đang bảo trì' },
+  { name:'Audi Q5 2024', plate:'51E-666.77', status:'rented', price:1500000, km:7800, trips:22, revenue:33000000, maintPct:88, nextMaint:'20/05/2026' },
+];
+
+const statusLabels = { available:'Sẵn sàng', rented:'Đang thuê', maintenance:'Bảo trì' };
+const statusClasses = { available:'badge-active', rented:'badge-completed', maintenance:'badge-pending' };
+
+function getMaintColor(pct) {
+  if (pct > 60) return 'var(--success)';
+  if (pct > 30) return 'var(--warning)';
+  return 'var(--danger)';
+}
+
+document.getElementById('fleet-grid').innerHTML = fleet.map((f,i) => `
+  <div class="fleet-card animate-fade-up" style="animation-delay:${i*0.04}s">
+    <div class="fleet-header">
+      <div>
+        <div class="fleet-name">${f.name}</div>
+        <div class="fleet-plate">${f.plate} · ${f.km.toLocaleString()} km</div>
+      </div>
+      <span class="badge ${statusClasses[f.status]}">${statusLabels[f.status]}</span>
+    </div>
+    <div class="fleet-stats">
+      <div class="fleet-stat"><div class="fleet-stat-val" style="color:var(--accent)">${formatVND(f.price)}</div><div class="fleet-stat-label">Giá/ngày</div></div>
+      <div class="fleet-stat"><div class="fleet-stat-val">${f.trips}</div><div class="fleet-stat-label">Chuyến</div></div>
+      <div class="fleet-stat"><div class="fleet-stat-val" style="color:var(--success)">${formatShort(f.revenue)}</div><div class="fleet-stat-label">Doanh thu</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+      <span>Tình trạng bảo trì</span>
+      <span style="color:${getMaintColor(f.maintPct)}">${f.maintPct}% · ${f.nextMaint}</span>
+    </div>
+    <div class="maint-bar"><div class="maint-fill" style="width:${f.maintPct}%;background:${getMaintColor(f.maintPct)}"></div></div>
+  </div>`).join('');
+</script>
+</body>
+</html>

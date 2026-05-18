@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Drivers</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .driver-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .driver-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: all var(--transition); }
+    .driver-card:hover { border-color: var(--border-hover); }
+    .driver-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .driver-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #8B6914); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--bg-primary); }
+    .driver-name { font-size: 15px; font-weight: 600; }
+    .driver-id { font-size: 11px; color: var(--text-muted); }
+    .driver-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .driver-meta-item { display: flex; flex-direction: column; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: var(--radius-xs); border: 1px solid var(--border); }
+    .driver-meta-item label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .driver-meta-item span { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    .driver-actions { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left"><h2>Tài xế</h2><p>Quản lý đội ngũ tài xế cho dịch vụ có tài xế</p></div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-driver')">+ Thêm tài xế</button>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card animate-fade-up"><div class="stat-value" style="font-size:24px">48</div><div class="stat-label">Tổng tài xế</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.05s"><div class="stat-value text-success" style="font-size:24px">32</div><div class="stat-label">Đang sẵn sàng</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.1s"><div class="stat-value text-info" style="font-size:24px">12</div><div class="stat-label">Đang chạy</div></div>
+      <div class="stat-card animate-fade-up" style="animation-delay:.15s"><div class="stat-value text-warning" style="font-size:24px">4</div><div class="stat-label">Nghỉ phép</div></div>
+    </div>
+
+    <div class="driver-grid" id="driver-grid"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-add-driver" onclick="if(event.target===this)closeModal('modal-add-driver')">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Thêm tài xế</h3><button class="modal-close" onclick="closeModal('modal-add-driver')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">Họ tên</label><input class="form-input"></div><div class="form-group"><label class="form-label">SĐT</label><input class="form-input"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">GPLX số</label><input class="form-input"></div><div class="form-group"><label class="form-label">Hạng GPLX</label><select class="form-select"><option>B1</option><option>B2</option><option>C</option><option>D</option></select></div></div>
+      <div class="form-group"><label class="form-label">Kinh nghiệm (năm)</label><input class="form-input" type="number" value="3"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-add-driver')">Hủy</button><button class="btn btn-primary" onclick="closeModal('modal-add-driver');showToast('Thêm tài xế thành công!')">Thêm</button></div>
+  </div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('drivers');
+document.getElementById('header-root').innerHTML = renderHeader('Drivers', 'Quản lý tài xế');
+
+const drivers = [
+  { name:'Nguyễn Văn Hùng', id:'DRV-001', phone:'0901111222', license:'B2', exp:5, trips:142, rating:4.9, status:'available' },
+  { name:'Trần Đức Mạnh', id:'DRV-002', phone:'0902222333', license:'C', exp:8, trips:231, rating:4.8, status:'driving' },
+  { name:'Lê Quốc Bảo', id:'DRV-003', phone:'0903333444', license:'B2', exp:3, trips:78, rating:4.7, status:'available' },
+  { name:'Phạm Minh Tuấn', id:'DRV-004', phone:'0904444555', license:'B2', exp:6, trips:195, rating:4.9, status:'driving' },
+  { name:'Hoàng Anh Dũng', id:'DRV-005', phone:'0905555666', license:'D', exp:10, trips:312, rating:5.0, status:'off' },
+  { name:'Võ Thanh Sơn', id:'DRV-006', phone:'0906666777', license:'B2', exp:4, trips:96, rating:4.6, status:'available' },
+];
+
+const statusMap = { available: { label:'Sẵn sàng', cls:'badge-active' }, driving: { label:'Đang chạy', cls:'badge-completed' }, off: { label:'Nghỉ phép', cls:'badge-pending' } };
+
+document.getElementById('driver-grid').innerHTML = drivers.map((d,i) => `
+  <div class="driver-card animate-fade-up" style="animation-delay:${i*0.04}s">
+    <div class="driver-top">
+      <div class="driver-avatar">${d.name.split(' ').map(w=>w[0]).slice(-2).join('')}</div>
+      <div style="flex:1">
+        <div class="driver-name">${d.name}</div>
+        <div class="driver-id">${d.id} · ${d.phone}</div>
+      </div>
+      <span class="badge ${statusMap[d.status].cls}">${statusMap[d.status].label}</span>
+    </div>
+    <div class="driver-meta">
+      <div class="driver-meta-item"><label>GPLX</label><span>Hạng ${d.license}</span></div>
+      <div class="driver-meta-item"><label>Kinh nghiệm</label><span>${d.exp} năm</span></div>
+      <div class="driver-meta-item"><label>Chuyến đi</label><span>${d.trips}</span></div>
+      <div class="driver-meta-item"><label>Đánh giá</label><span>⭐ ${d.rating}</span></div>
+    </div>
+    <div class="driver-actions">
+      <button class="btn btn-secondary btn-sm" style="flex:1">Xem chi tiết</button>
+      <button class="btn btn-secondary btn-sm btn-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l3 3-8 8H2v-3l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Profile</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .profile-hero {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .profile-cover {
+      height: 140px;
+      background: linear-gradient(135deg, rgba(200,164,92,0.2), rgba(139,105,20,0.15), rgba(11,14,17,0.9));
+      position: relative;
+    }
+    .profile-cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C8A45C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+    .profile-info-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 32px 24px;
+      margin-top: -40px;
+      position: relative;
+    }
+    .profile-avatar-lg {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #8B6914);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 36px;
+      color: var(--bg-primary);
+      border: 4px solid var(--bg-card);
+      flex-shrink: 0;
+    }
+    .profile-meta {
+      flex: 1;
+      padding-bottom: 4px;
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-role-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .profile-actions {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 4px;
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .info-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .info-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-item:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .info-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .stat-mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-mini {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-mini-value {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .stat-mini-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .activity-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .activity-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .activity-text strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .activity-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .session-item:last-child {
+      border-bottom: none;
+    }
+    .session-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .session-info {
+      flex: 1;
+    }
+    .session-device {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .session-detail {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .session-status {
+      font-size: 11px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+
+    <!-- Profile Hero -->
+    <div class="profile-hero animate-fade-up">
+      <div class="profile-cover"></div>
+      <div class="profile-info-bar">
+        <div class="profile-avatar-lg">A</div>
+        <div class="profile-meta">
+          <div class="profile-name">Ares (Chu Diep)</div>
+          <div class="profile-role-tag">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 1L10 5.5L15 6.2L11.5 9.5L12.4 14.5L8 12.2L3.6 14.5L4.5 9.5L1 6.2L6 5.5Z" fill="currentColor"/></svg>
+            Super Admin
+          </div>
+        </div>
+        <div class="profile-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openModal('modal-edit-profile')">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l3 3-8 8H2v-3l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            Chỉnh sửa
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openModal('modal-change-password')">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Đổi mật khẩu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="profile-grid">
+
+      <!-- Left Column -->
+      <div>
+        <!-- Personal Info -->
+        <div class="card animate-fade-up" style="animation-delay:.05s">
+          <div class="card-header"><h3 class="card-title">Thông tin cá nhân</h3></div>
+          <div class="card-body">
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Họ và tên</span>
+                <span class="info-value">Chu Diep (Ares)</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">ares@aresdrive.vn</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Số điện thoại</span>
+                <span class="info-value">0909 123 456</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Chức vụ</span>
+                <span class="info-value" style="color:var(--accent)">Super Admin</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Phòng ban</span>
+                <span class="info-value">Ban Giám Đốc</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Ngày tham gia</span>
+                <span class="info-value">15/01/2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sessions -->
+        <div class="card animate-fade-up mt-24" style="animation-delay:.15s">
+          <div class="card-header">
+            <h3 class="card-title">Phiên đăng nhập</h3>
+            <button class="btn btn-danger btn-sm" onclick="showToast('Đã đăng xuất tất cả thiết bị khác','warning')">Đăng xuất tất cả</button>
+          </div>
+          <div class="card-body">
+            <div class="session-item">
+              <div class="session-icon">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 14H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="session-info">
+                <div class="session-device">Chrome — Windows 11</div>
+                <div class="session-detail">TP.HCM, Viet Nam  ·  IP: 103.45.xx.xx</div>
+              </div>
+              <span class="session-status" style="color:var(--success)">Hiện tại</span>
+            </div>
+            <div class="session-item">
+              <div class="session-icon">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="1" width="8" height="14" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="12.5" r="0.8" fill="currentColor"/></svg>
+              </div>
+              <div class="session-info">
+                <div class="session-device">Safari — iPhone 15 Pro</div>
+                <div class="session-detail">TP.HCM, Viet Nam  ·  2 giờ trước</div>
+              </div>
+              <span class="session-status" style="color:var(--text-muted)">Không hoạt động</span>
+            </div>
+            <div class="session-item">
+              <div class="session-icon">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 14H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="session-info">
+                <div class="session-device">Firefox — macOS</div>
+                <div class="session-detail">Hà Nội, Viet Nam  ·  3 ngày trước</div>
+              </div>
+              <span class="session-status" style="color:var(--text-muted)">Không hoạt động</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Stats -->
+        <div class="card animate-fade-up" style="animation-delay:.1s">
+          <div class="card-header"><h3 class="card-title">Thống kê hoạt động</h3></div>
+          <div class="card-body">
+            <div class="stat-mini-grid">
+              <div class="stat-mini">
+                <div class="stat-mini-value" style="color:var(--accent)">1,247</div>
+                <div class="stat-mini-label">Booking đã duyệt</div>
+              </div>
+              <div class="stat-mini">
+                <div class="stat-mini-value" style="color:var(--success)">89</div>
+                <div class="stat-mini-label">Xe đã thêm</div>
+              </div>
+              <div class="stat-mini">
+                <div class="stat-mini-value" style="color:var(--info)">342</div>
+                <div class="stat-mini-label">KH đã duyệt</div>
+              </div>
+              <div class="stat-mini">
+                <div class="stat-mini-value" style="color:var(--warning)">56</div>
+                <div class="stat-mini-label">Vấn đề xử lý</div>
+              </div>
+            </div>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Đăng nhập gần nhất</span>
+                <span class="info-value">Hôm nay, 08:32</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tổng phiên đăng nhập</span>
+                <span class="info-value">1,832 lần</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Lần đổi mật khẩu</span>
+                <span class="info-value">22/03/2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card animate-fade-up mt-24" style="animation-delay:.2s">
+          <div class="card-header">
+            <h3 class="card-title">Hoạt động gần đây</h3>
+            <button class="pill-btn active">Tất cả</button>
+          </div>
+          <div class="card-body">
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--success)"></div>
+              <div>
+                <div class="activity-text"><strong>Duyệt booking</strong> #AD-2847 — Toyota Camry cho Trần Hưng</div>
+                <div class="activity-time">Hôm nay, 09:15</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--info)"></div>
+              <div>
+                <div class="activity-text"><strong>Thêm xe mới</strong> — Mercedes S450 2024 (51H-001.23)</div>
+                <div class="activity-time">Hôm nay, 08:45</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--accent)"></div>
+              <div>
+                <div class="activity-text"><strong>Cập nhật giá</strong> — Honda CR-V 2023 từ 800K lên 900K/ngày</div>
+                <div class="activity-time">Hôm qua, 17:30</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--danger)"></div>
+              <div>
+                <div class="activity-text"><strong>Hủy booking</strong> #AD-2843 — Lý do: Khách không đến nhận xe</div>
+                <div class="activity-time">Hôm qua, 14:20</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--warning)"></div>
+              <div>
+                <div class="activity-text"><strong>Xử lý khiếu nại</strong> — KH Phan Tú về tình trạng xe</div>
+                <div class="activity-time">13/04/2026, 10:00</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--success)"></div>
+              <div>
+                <div class="activity-text"><strong>Duyệt tài xế</strong> — Nguyễn Văn Bình đã được phê duyệt</div>
+                <div class="activity-time">13/04/2026, 09:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal: Edit Profile -->
+<div class="modal-overlay" id="modal-edit-profile" onclick="if(event.target===this)closeModal('modal-edit-profile')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title">Chỉnh sửa thông tin</h3>
+      <button class="modal-close" onclick="closeModal('modal-edit-profile')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Họ và tên</label><input class="form-input" value="Chu Diep"></div>
+        <div class="form-group"><label class="form-label">Biệt danh</label><input class="form-input" value="Ares"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" value="ares@aresdrive.vn"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Số điện thoại</label><input class="form-input" value="0909 123 456"></div>
+        <div class="form-group"><label class="form-label">Phòng ban</label><input class="form-input" value="Ban Giám Đốc"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-profile')">Hủy</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-edit-profile');showToast('Cập nhật thông tin thành công!')">Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Change Password -->
+<div class="modal-overlay" id="modal-change-password" onclick="if(event.target===this)closeModal('modal-change-password')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h3 class="modal-title">Đổi mật khẩu</h3>
+      <button class="modal-close" onclick="closeModal('modal-change-password')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Mật khẩu hiện tại</label><input class="form-input" type="password" placeholder="Nhập mật khẩu hiện tại"></div>
+      <div class="form-group"><label class="form-label">Mật khẩu mới</label><input class="form-input" type="password" placeholder="Nhập mật khẩu mới"></div>
+      <div class="form-group"><label class="form-label">Xác nhận mật khẩu mới</label><input class="form-input" type="password" placeholder="Nhập lại mật khẩu mới"></div>
+      <div class="form-hint" style="margin-top:-12px">Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-change-password')">Hủy</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-change-password');showToast('Đổi mật khẩu thành công!')">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('profile');
+document.getElementById('header-root').innerHTML = renderHeader('Profile', 'Thông tin tài khoản');
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>AresDrive Database Diagram</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #1f2933; line-height: 1.45; margin: 32px; }
+    h1 { font-size: 28px; margin: 0 0 8px; color: #111827; }
+    h2 { font-size: 20px; margin: 28px 0 10px; color: #111827; border-bottom: 1px solid #d7dde5; padding-bottom: 6px; }
+    h3 { font-size: 16px; margin: 20px 0 8px; color: #111827; }
+    p { margin: 6px 0 12px; }
+    .note { background: #eef6ff; border-left: 4px solid #2563eb; padding: 10px 12px; margin: 12px 0 18px; }
+    .diagram { border: 1px solid #d7dde5; padding: 10px; margin: 12px 0 24px; background: #fff; }
+    .diagram img { width: 100%; height: auto; display: block; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 18px; font-size: 13px; }
+    th { background: #f3f4f6; text-align: left; color: #111827; }
+    th, td { border: 1px solid #d7dde5; padding: 8px 10px; vertical-align: top; }
+    code { font-family: Consolas, monospace; font-size: 12px; color: #7c2d12; }
+    .small { font-size: 12px; color: #52606d; }
+  </style>
+</head>
+<body>
+  <h1>AresDrive Database Diagram</h1>
+  <p class="small">Modular monolith database structure for car rental, own vehicle, own driver, and P2P marketplace.</p>
+
+  <div class="note">
+    <strong>Lưu ý:</strong> bản này dùng ảnh PNG thật thay vì SVG/Mermaid để Word hiển thị diagram ổn định hơn.
+    Các quan hệ chéo module là UUID reference, không tạo foreign key vật lý để sau này tách microservice dễ hơn.
+  </div>
+
+  <h2>1. Database Schema Overview</h2>
+  <div class="diagram">
+    <img src="database-overview.png" alt="AresDrive Database Schema Overview">
+  </div>
+
+  <h2>2. Database Table Map</h2>
+  <div class="diagram">
+    <img src="database-table-map.png" alt="AresDrive Database Table Map">
+  </div>
+
+  <h2>3. Booking-Centric Diagram</h2>
+  <div class="diagram">
+    <img src="database-booking-flow.png" alt="Booking-Centric Database Diagram">
+  </div>
+
+  <h2>4. Ý Nghĩa Từng Schema</h2>
+  <table>
+    <tr><th>Schema</th><th>Nhiệm vụ</th></tr>
+    <tr><td><code>common</code></td><td>Hạ tầng dùng chung: outbox event, idempotency.</td></tr>
+    <tr><td><code>identity</code></td><td>Tài khoản đăng nhập, role, permission, session.</td></tr>
+    <tr><td><code>customer</code></td><td>Hồ sơ khách hàng, chủ xe, KYC, địa chỉ.</td></tr>
+    <tr><td><code>vehicle</code></td><td>Thông tin xe, tin đăng marketplace, hình ảnh, lịch bận.</td></tr>
+    <tr><td><code>fleet</code></td><td>Xe công ty sở hữu, chi nhánh, bảo trì, bảo hiểm, kiểm định.</td></tr>
+    <tr><td><code>driver</code></td><td>Tài xế công ty, giấy tờ, lịch rảnh, assignment.</td></tr>
+    <tr><td><code>pricing</code></td><td>Bảng giá, mã giảm giá, quote trước khi tạo booking.</td></tr>
+    <tr><td><code>booking</code></td><td>Đơn thuê xe, trạng thái, checklist nhận/trả xe, hủy đơn.</td></tr>
+    <tr><td><code>payment</code></td><td>Thanh toán, transaction, hoàn tiền, payout.</td></tr>
+    <tr><td><code>review</code></td><td>Đánh giá xe, host, tài xế, khách thuê.</td></tr>
+    <tr><td><code>notification</code></td><td>Email, SMS, push, in-app notification.</td></tr>
+    <tr><td><code>admin</code></td><td>Audit log, task nội bộ, snapshot số liệu dashboard.</td></tr>
+  </table>
+
+  <h2>5. Giải Thích Từng Table</h2>
+
+  <h3>common</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>common.outbox_events</code></td><td>Lưu event quan trọng sau transaction, ví dụ <code>BookingConfirmed</code>, <code>PaymentSucceeded</code>.</td></tr>
+    <tr><td><code>common.idempotency_keys</code></td><td>Chống tạo trùng request, đặc biệt cho tạo booking, thanh toán, refund.</td></tr>
+  </table>
+
+  <h3>identity</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>identity.users</code></td><td>Tài khoản đăng nhập chung cho customer, admin, driver.</td></tr>
+    <tr><td><code>identity.roles</code></td><td>Nhóm quyền như <code>SUPER_ADMIN</code>, <code>FINANCE</code>, <code>FLEET_MANAGER</code>.</td></tr>
+    <tr><td><code>identity.permissions</code></td><td>Quyền chi tiết như <code>booking.approve</code>, <code>payment.refund</code>.</td></tr>
+    <tr><td><code>identity.user_roles</code></td><td>Gán user vào role.</td></tr>
+    <tr><td><code>identity.role_permissions</code></td><td>Gán permission vào role.</td></tr>
+    <tr><td><code>identity.login_sessions</code></td><td>Quản lý refresh token/session để logout và revoke token.</td></tr>
+  </table>
+
+  <h3>customer</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>customer.customers</code></td><td>Hồ sơ khách hàng trên nền tảng.</td></tr>
+    <tr><td><code>customer.customer_roles</code></td><td>Lưu vai trò <code>RENTER</code> hoặc <code>HOST</code>.</td></tr>
+    <tr><td><code>customer.host_profiles</code></td><td>Hồ sơ chủ xe khi customer đăng xe P2P.</td></tr>
+    <tr><td><code>customer.kyc_profiles</code></td><td>Thông tin xác minh danh tính/KYC.</td></tr>
+    <tr><td><code>customer.kyc_documents</code></td><td>Ảnh giấy tờ KYC: mặt trước, mặt sau, selfie.</td></tr>
+    <tr><td><code>customer.addresses</code></td><td>Địa chỉ khách hàng, dùng cho giao/nhận xe và liên hệ.</td></tr>
+  </table>
+
+  <h3>vehicle</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>vehicle.vehicles</code></td><td>Thông tin xe cốt lõi, gồm xe chủ nhà và xe công ty.</td></tr>
+    <tr><td><code>vehicle.vehicle_listings</code></td><td>Tin đăng cho thuê: tiêu đề, mô tả, địa điểm, giá cơ bản.</td></tr>
+    <tr><td><code>vehicle.vehicle_images</code></td><td>Ảnh xe, ảnh cover, thứ tự hiển thị.</td></tr>
+    <tr><td><code>vehicle.vehicle_features</code></td><td>Tiện ích xe: camera, bluetooth, ghế trẻ em, v.v.</td></tr>
+    <tr><td><code>vehicle.availability_blocks</code></td><td>Khoảng thời gian xe không khả dụng do booking, bảo trì, chủ xe khóa lịch.</td></tr>
+  </table>
+
+  <h3>fleet</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>fleet.branches</code></td><td>Chi nhánh hoặc bãi xe của công ty.</td></tr>
+    <tr><td><code>fleet.company_vehicles</code></td><td>Tài sản xe công ty: mã tài sản, VIN, km, trạng thái vận hành.</td></tr>
+    <tr><td><code>fleet.maintenance_records</code></td><td>Lịch sử bảo trì, sửa chữa, vệ sinh, kiểm tra xe công ty.</td></tr>
+    <tr><td><code>fleet.insurance_policies</code></td><td>Thông tin bảo hiểm của xe công ty.</td></tr>
+    <tr><td><code>fleet.inspection_records</code></td><td>Đăng kiểm/kiểm định xe công ty.</td></tr>
+  </table>
+
+  <h3>driver</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>driver.drivers</code></td><td>Hồ sơ tài xế công ty: bằng lái, kinh nghiệm, rating, trạng thái.</td></tr>
+    <tr><td><code>driver.driver_documents</code></td><td>Tài liệu tài xế: bằng lái, ảnh chân dung, giấy tờ khác.</td></tr>
+    <tr><td><code>driver.availability_slots</code></td><td>Lịch rảnh/bận của tài xế.</td></tr>
+    <tr><td><code>driver.driver_assignments</code></td><td>Gán tài xế vào booking có tài xế.</td></tr>
+  </table>
+
+  <h3>pricing</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>pricing.price_plans</code></td><td>Bảng giá theo xe, tài xế hoặc dịch vụ.</td></tr>
+    <tr><td><code>pricing.promotions</code></td><td>Mã giảm giá, điều kiện, giới hạn sử dụng.</td></tr>
+    <tr><td><code>pricing.quotes</code></td><td>Báo giá tạm tính trước khi tạo booking.</td></tr>
+    <tr><td><code>pricing.quote_items</code></td><td>Chi tiết báo giá: tiền thuê, phí tài xế, phí giao xe, giảm giá, cọc.</td></tr>
+    <tr><td><code>pricing.promotion_redemptions</code></td><td>Lịch sử customer đã dùng mã giảm giá.</td></tr>
+  </table>
+
+  <h3>booking</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>booking.bookings</code></td><td>Đơn thuê xe trung tâm: xe, khách, thời gian, loại dịch vụ, tổng tiền, trạng thái.</td></tr>
+    <tr><td><code>booking.booking_status_history</code></td><td>Lịch sử thay đổi trạng thái booking.</td></tr>
+    <tr><td><code>booking.trip_checklists</code></td><td>Biên bản nhận xe/trả xe: km, xăng, pin, ghi chú.</td></tr>
+    <tr><td><code>booking.trip_checklist_items</code></td><td>Chi tiết từng hạng mục kiểm tra xe khi nhận/trả.</td></tr>
+    <tr><td><code>booking.booking_cancellations</code></td><td>Thông tin hủy booking và số tiền hoàn.</td></tr>
+  </table>
+
+  <h3>payment</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>payment.payment_intents</code></td><td>Yêu cầu thanh toán cho booking trước khi có giao dịch thật.</td></tr>
+    <tr><td><code>payment.transactions</code></td><td>Giao dịch thanh toán thật từ VNPay, MoMo, chuyển khoản, tiền mặt.</td></tr>
+    <tr><td><code>payment.refunds</code></td><td>Yêu cầu và trạng thái hoàn tiền.</td></tr>
+    <tr><td><code>payment.payouts</code></td><td>Chi tiền cho host, driver, hoặc ghi nhận doanh thu công ty.</td></tr>
+  </table>
+
+  <h3>review</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>review.reviews</code></td><td>Đánh giá sau chuyến đi cho xe, host, tài xế, renter.</td></tr>
+    <tr><td><code>review.review_replies</code></td><td>Phản hồi của host, driver, admin hoặc customer cho review.</td></tr>
+    <tr><td><code>review.review_reports</code></td><td>Báo cáo review vì nội dung không phù hợp.</td></tr>
+  </table>
+
+  <h3>notification</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>notification.templates</code></td><td>Mẫu nội dung thông báo theo email, SMS, push, in-app.</td></tr>
+    <tr><td><code>notification.notifications</code></td><td>Bản ghi thông báo cần gửi hoặc đã gửi cho user/customer.</td></tr>
+    <tr><td><code>notification.delivery_logs</code></td><td>Log kết quả gửi thông báo từ provider.</td></tr>
+    <tr><td><code>notification.devices</code></td><td>Thiết bị nhận push notification của user.</td></tr>
+  </table>
+
+  <h3>admin</h3>
+  <table>
+    <tr><th>Table</th><th>Nghiệp vụ</th></tr>
+    <tr><td><code>admin.audit_logs</code></td><td>Lịch sử thao tác admin để truy vết.</td></tr>
+    <tr><td><code>admin.backoffice_tasks</code></td><td>Task nội bộ cho CS, finance, fleet, moderator xử lý.</td></tr>
+    <tr><td><code>admin.dashboard_snapshots</code></td><td>Số liệu tổng hợp sẵn cho dashboard admin.</td></tr>
+  </table>
+
+  <h2>6. Các Biến Thể Booking Chính</h2>
+  <table>
+    <tr><th>service_type</th><th>vehicle_source</th><th>Ý nghĩa</th></tr>
+    <tr><td><code>SELF_DRIVE</code></td><td><code>HOST_OWNED</code></td><td>Thuê xe tự lái P2P giống Mioto.</td></tr>
+    <tr><td><code>SELF_DRIVE</code></td><td><code>COMPANY_OWNED</code></td><td>Thuê xe tự lái từ xe công ty.</td></tr>
+    <tr><td><code>WITH_DRIVER</code></td><td><code>COMPANY_OWNED</code></td><td>Xe công ty kèm tài xế công ty.</td></tr>
+    <tr><td><code>WITH_DRIVER</code></td><td><code>HOST_OWNED</code></td><td>Hướng mở rộng nếu sau này cho host cung cấp tài xế.</td></tr>
+  </table>
+</body>
+</html>

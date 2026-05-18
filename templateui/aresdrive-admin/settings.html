@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Settings</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; }
+    .settings-nav { display: flex; flex-direction: column; gap: 4px; }
+    .settings-nav-item { padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 10px; }
+    .settings-nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+    .settings-nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info h4 { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+    .setting-info p { font-size: 12px; color: var(--text-muted); }
+    .toggle { position: relative; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; z-index: 1; }
+    .toggle-track { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 11px; transition: background var(--transition); }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform var(--transition); pointer-events: none; }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header"><div class="page-header-left"><h2>Cài đặt</h2><p>Cấu hình hệ thống AresDrive</p></div></div>
+
+    <div class="settings-layout">
+      <div class="settings-nav">
+        <div class="settings-nav-item active" onclick="switchTab('general',this)">🏢 Tổng quát</div>
+        <div class="settings-nav-item" onclick="switchTab('security',this)">🔒 Bảo mật</div>
+        <div class="settings-nav-item" onclick="switchTab('payment',this)">💳 Thanh toán</div>
+        <div class="settings-nav-item" onclick="switchTab('notification',this)">🔔 Thông báo</div>
+        <div class="settings-nav-item" onclick="switchTab('booking',this)">📋 Booking</div>
+      </div>
+
+      <div>
+        <!-- General -->
+        <div class="settings-section active" id="tab-general">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:20px">Thông tin công ty</h3>
+            <div class="form-row"><div class="form-group"><label class="form-label">Tên công ty</label><input class="form-input" value="AresDrive JSC"></div><div class="form-group"><label class="form-label">Email</label><input class="form-input" value="admin@aresdrive.vn"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">SĐT</label><input class="form-input" value="1900 1234"></div><div class="form-group"><label class="form-label">Website</label><input class="form-input" value="https://aresdrive.vn"></div></div>
+            <div class="form-group"><label class="form-label">Địa chỉ</label><input class="form-input" value="Tầng 12, Landmark 81, Bình Thạnh, TP.HCM"></div>
+            <div class="form-group"><label class="form-label">Mô tả</label><textarea class="form-textarea">AresDrive - Nền tảng cho thuê xe hàng đầu Việt Nam. Cung cấp dịch vụ thuê xe tự lái, thuê xe có tài xế với đội xe cao cấp.</textarea></div>
+            <button class="btn btn-primary mt-16" onclick="showToast('Đã lưu thay đổi!')">Lưu thay đổi</button>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="settings-section" id="tab-security">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:20px">Bảo mật</h3>
+            <div class="setting-row"><div class="setting-info"><h4>Xác thực hai yếu tố (2FA)</h4><p>Bảo vệ tài khoản admin bằng OTP</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Đăng nhập bằng SSO</h4><p>Cho phép đăng nhập qua Google / Microsoft</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Tự động khóa sau 30 phút</h4><p>Tự động đăng xuất khi không hoạt động</p></div><label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>IP Whitelist</h4><p>Chỉ cho phép truy cập từ IP cố định</p></div><label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div style="margin-top:20px"><div class="form-row"><div class="form-group"><label class="form-label">Đổi mật khẩu</label><input class="form-input" type="password" placeholder="Mật khẩu hiện tại"></div><div class="form-group"><label class="form-label">&nbsp;</label><input class="form-input" type="password" placeholder="Mật khẩu mới"></div></div></div>
+            <button class="btn btn-primary mt-16" onclick="showToast('Đã cập nhật bảo mật!')">Cập nhật</button>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="settings-section" id="tab-payment">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:20px">Cổng thanh toán</h3>
+            <div class="setting-row"><div class="setting-info"><h4>VNPay</h4><p>Cổng thanh toán VNPay — Đang hoạt động</p></div><span class="badge badge-active">Kết nối</span></div>
+            <div class="setting-row"><div class="setting-info"><h4>MoMo</h4><p>Ví điện tử MoMo — Đang hoạt động</p></div><span class="badge badge-active">Kết nối</span></div>
+            <div class="setting-row"><div class="setting-info"><h4>ZaloPay</h4><p>Ví ZaloPay — Chưa kết nối</p></div><button class="btn btn-secondary btn-sm">Kết nối</button></div>
+            <div class="setting-row"><div class="setting-info"><h4>Chuyển khoản ngân hàng</h4><p>Vietcombank — 0123456789</p></div><span class="badge badge-active">Kết nối</span></div>
+            <h3 style="font-size:16px;font-weight:600;margin:24px 0 16px">Chính sách</h3>
+            <div class="form-row"><div class="form-group"><label class="form-label">Phí nền tảng (%)</label><input class="form-input" type="number" value="15"></div><div class="form-group"><label class="form-label">Đặt cọc tối thiểu (%)</label><input class="form-input" type="number" value="30"></div></div>
+            <div class="form-group"><label class="form-label">Thời hạn hoàn tiền (ngày)</label><input class="form-input" type="number" value="7"></div>
+            <button class="btn btn-primary mt-16" onclick="showToast('Đã lưu cài đặt thanh toán!')">Lưu</button>
+          </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="settings-section" id="tab-notification">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:20px">Cài đặt thông báo</h3>
+            <div class="setting-row"><div class="setting-info"><h4>Email — Booking mới</h4><p>Gửi email khi có booking mới</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Email — Thanh toán</h4><p>Thông báo khi thanh toán thành công / thất bại</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>SMS — Nhắc nhở trả xe</h4><p>Gửi SMS trước 24h khi đến hạn trả xe</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Push — Review mới</h4><p>Thông báo khi có review mới cần duyệt</p></div><label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Slack — Cảnh báo hệ thống</h4><p>Gửi alert qua Slack khi có sự cố</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <button class="btn btn-primary mt-16" onclick="showToast('Đã lưu cài đặt thông báo!')">Lưu</button>
+          </div>
+        </div>
+
+        <!-- Booking -->
+        <div class="settings-section" id="tab-booking">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:600;margin-bottom:20px">Quy tắc Booking</h3>
+            <div class="form-row"><div class="form-group"><label class="form-label">Thời gian thuê tối thiểu (giờ)</label><input class="form-input" type="number" value="6"></div><div class="form-group"><label class="form-label">Thời gian thuê tối đa (ngày)</label><input class="form-input" type="number" value="30"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">Đặt trước tối thiểu (giờ)</label><input class="form-input" type="number" value="2"></div><div class="form-group"><label class="form-label">Hủy miễn phí trước (giờ)</label><input class="form-input" type="number" value="24"></div></div>
+            <div class="setting-row"><div class="setting-info"><h4>Tự động duyệt booking</h4><p>Xe AresDrive tự động chấp nhận booking</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Yêu cầu KYC</h4><p>Khách hàng phải xác minh CCCD trước khi đặt xe</p></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <div class="setting-row"><div class="setting-info"><h4>Giới hạn km/ngày</h4><p>Áp dụng giới hạn 350km/ngày cho tất cả xe</p></div><label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+            <button class="btn btn-primary mt-16" onclick="showToast('Đã lưu quy tắc booking!')">Lưu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('settings');
+document.getElementById('header-root').innerHTML = renderHeader('Settings', 'Cấu hình hệ thống');
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

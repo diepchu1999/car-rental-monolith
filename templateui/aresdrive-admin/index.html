@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card animate-fade-up" style="--card-accent:#C8A45C;animation-delay:.05s">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:var(--accent-dim)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" fill="#C8A45C" opacity=".3" stroke="#C8A45C" stroke-width="1.2"/></svg>
+          </div>
+          <span class="stat-trend up">▲ 18.2%</span>
+        </div>
+        <div class="stat-value">₫2.84B</div>
+        <div class="stat-label">Tổng doanh thu tháng</div>
+      </div>
+      <div class="stat-card animate-fade-up" style="--card-accent:#5BA4F5;animation-delay:.1s">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:var(--info-dim)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" fill="#5BA4F5" opacity=".2" stroke="#5BA4F5" stroke-width="1.2"/><path d="M7 10L9 12L13 8" stroke="#5BA4F5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="stat-trend up">▲ 12.5%</span>
+        </div>
+        <div class="stat-value">1,247</div>
+        <div class="stat-label">Bookings tháng này</div>
+      </div>
+      <div class="stat-card animate-fade-up" style="--card-accent:#3ECF8E;animation-delay:.15s">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:var(--success-dim)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14L3 10L6 5H14L17 10V14Z" fill="#3ECF8E" opacity=".2" stroke="#3ECF8E" stroke-width="1.2"/><circle cx="6.5" cy="14" r="1.5" fill="#3ECF8E"/><circle cx="13.5" cy="14" r="1.5" fill="#3ECF8E"/></svg>
+          </div>
+          <span class="stat-trend up">▲ 8.3%</span>
+        </div>
+        <div class="stat-value">342</div>
+        <div class="stat-label">Xe đang hoạt động</div>
+      </div>
+      <div class="stat-card animate-fade-up" style="--card-accent:#F5A623;animation-delay:.2s">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:var(--warning-dim)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="8" r="4" fill="#F5A623" opacity=".2" stroke="#F5A623" stroke-width="1.2"/><path d="M4 17C4 13.5 6.5 12 10 12C13.5 12 16 13.5 16 17" stroke="#F5A623" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </div>
+          <span class="stat-trend down">▼ 3.1%</span>
+        </div>
+        <div class="stat-value">5,891</div>
+        <div class="stat-label">Khách hàng đăng ký</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:28px">
+      <div class="card animate-fade-up" style="animation-delay:.25s">
+        <div class="card-header">
+          <div><div class="card-title">Doanh thu theo tuần</div><div class="card-subtitle">So sánh 4 tuần gần nhất</div></div>
+          <div class="flex gap-8">
+            <button class="pill-btn">Tuần</button>
+            <button class="pill-btn active">Tháng</button>
+            <button class="pill-btn">Năm</button>
+          </div>
+        </div>
+        <div class="card-body"><div style="position:relative;height:260px"><canvas id="revenueChart"></canvas></div></div>
+      </div>
+      <div class="card animate-fade-up" style="animation-delay:.3s">
+        <div class="card-header"><div><div class="card-title">Phân loại xe</div><div class="card-subtitle">Theo nguồn cung cấp</div></div></div>
+        <div class="card-body" style="padding-top:8px">
+          <div style="position:relative;height:160px;margin-bottom:16px"><canvas id="donutChart"></canvas></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+              <div style="flex:1"><div style="font-size:12px;color:var(--text-secondary)">P2P tự lái</div></div>
+              <span style="font-family:var(--font-display);font-weight:600">186</span>
+              <span style="font-size:11px;color:var(--text-muted)">54%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--info)"></div>
+              <div style="flex:1"><div style="font-size:12px;color:var(--text-secondary)">Xe AresDrive</div></div>
+              <span style="font-family:var(--font-display);font-weight:600">98</span>
+              <span style="font-size:11px;color:var(--text-muted)">29%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--success)"></div>
+              <div style="flex:1"><div style="font-size:12px;color:var(--text-secondary)">Có tài xế</div></div>
+              <span style="font-family:var(--font-display);font-weight:600">58</span>
+              <span style="font-size:11px;color:var(--text-muted)">17%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Bookings Table -->
+    <div class="card animate-fade-up" style="animation-delay:.35s">
+      <div class="card-header">
+        <div><div class="card-title">Booking gần đây</div><div class="card-subtitle">Cập nhật realtime</div></div>
+        <div class="flex gap-8">
+          <button class="pill-btn active">Tất cả</button>
+          <button class="pill-btn">Đang thuê</button>
+          <button class="pill-btn">Chờ duyệt</button>
+        </div>
+      </div>
+      <div style="padding:0 24px 24px">
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Mã</th><th>Xe</th><th>Khách hàng</th><th>Loại</th><th>Ngày thuê</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+            <tbody id="bookings-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('dashboard');
+document.getElementById('header-root').innerHTML = renderHeader('Dashboard', 'Xin chào, Ares');
+
+// Sample bookings data
+const bookings = [
+  { id: 'AD-2847', car: 'Toyota Camry 2024', plate: '51A-888.99', customer: 'Trần Hưng', initials: 'TH', color: 'var(--info)', type: 'self', typeName: 'AresDrive', dates: '08/04 → 12/04', amount: 3200000, status: 'active' },
+  { id: 'AD-2846', car: 'Honda CR-V 2023', plate: '59C-321.45', customer: 'Mai Linh', initials: 'ML', color: 'var(--success)', type: 'p2p', typeName: 'P2P', dates: '07/04 → 10/04', amount: 2700000, status: 'active' },
+  { id: 'AD-2845', car: 'Mercedes S450 2024', plate: '51H-001.23', customer: 'Phạm Duy', initials: 'PD', color: 'var(--accent)', type: 'chauffeur', typeName: 'Có tài xế', dates: '08/04 → 08/04', amount: 4500000, status: 'pending' },
+  { id: 'AD-2844', car: 'VinFast VF8 2024', plate: '51K-567.89', customer: 'Nguyễn An', initials: 'NA', color: 'var(--danger)', type: 'self', typeName: 'AresDrive', dates: '05/04 → 07/04', amount: 1800000, status: 'completed' },
+  { id: 'AD-2843', car: 'Hyundai Tucson 2023', plate: '51G-234.56', customer: 'Lê Thảo', initials: 'LT', color: 'var(--info)', type: 'p2p', typeName: 'P2P', dates: '04/04 → 06/04', amount: 2100000, status: 'cancelled' },
+];
+
+const statusMap = { active: 'Đang thuê', pending: 'Chờ duyệt', completed: 'Hoàn thành', cancelled: 'Đã hủy' };
+
+document.getElementById('bookings-table').innerHTML = bookings.map(b => `
+  <tr>
+    <td style="color:var(--accent);font-weight:500">#${b.id}</td>
+    <td><div class="flex items-center gap-12">
+      <div style="width:48px;height:36px;border-radius:6px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center">
+        <svg width="32" height="24" viewBox="0 0 32 24" fill="none" style="opacity:.5"><path d="M4 16L4 12L8 6H24L28 12V16Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="16" r="2.5" stroke="currentColor"/><circle cx="24" cy="16" r="2.5" stroke="currentColor"/></svg>
+      </div>
+      <div><div style="font-weight:500">${b.car}</div><div style="font-size:11px;color:var(--text-muted)">${b.plate}</div></div>
+    </div></td>
+    <td><div class="flex items-center gap-8">
+      <div class="avatar avatar-sm" style="background:${b.color}15;color:${b.color}">${b.initials}</div>
+      <span>${b.customer}</span>
+    </div></td>
+    <td><span class="tag tag-${b.type}">${b.typeName}</span></td>
+    <td style="color:var(--text-secondary)">${b.dates}</td>
+    <td><span class="font-display" style="font-weight:500;color:var(--accent)">${formatVND(b.amount)}</span></td>
+    <td><span class="badge badge-${b.status}">${statusMap[b.status]}</span></td>
+  </tr>
+`).join('');
+
+// Revenue Chart
+const ctx1 = document.getElementById('revenueChart').getContext('2d');
+const grad = ctx1.createLinearGradient(0, 0, 0, 260);
+grad.addColorStop(0, 'rgba(200,164,92,0.2)');
+grad.addColorStop(1, 'rgba(200,164,92,0)');
+
+new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: ['T2','T3','T4','T5','T6','T7','CN','T2','T3','T4','T5','T6','T7','CN','T2','T3','T4','T5','T6','T7','CN','T2','T3','T4','T5','T6','T7','CN'],
+    datasets: [{
+      data: [85,92,78,105,132,148,160,95,88,110,125,142,138,155,102,98,120,135,158,170,182,112,105,128,145,162,175,190],
+      borderColor: '#C8A45C', backgroundColor: grad, fill: true, tension: 0.4, borderWidth: 2,
+      pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#C8A45C',
+      pointHoverBorderColor: '#0B0E11', pointHoverBorderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#1E242E', titleColor: '#8B8D93', bodyColor: '#E8E6E1',
+      bodyFont: { family: "'DM Sans'", size: 13 }, borderColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1, cornerRadius: 8, padding: 12, callbacks: { label: c => `₫${c.parsed.y}M` }
+    }},
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#555860', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, border: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#555860', font: { size: 10 }, callback: v => `₫${v}M` }, border: { display: false } }
+    },
+    interaction: { intersect: false, mode: 'index' }
+  }
+});
+
+// Donut
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['P2P', 'AresDrive', 'Có tài xế'],
+    datasets: [{ data: [186, 98, 58], backgroundColor: ['#C8A45C', '#5BA4F5', '#3ECF8E'], borderColor: '#181D25', borderWidth: 3, borderRadius: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E242E', bodyColor: '#E8E6E1', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 10 }}
+  }
+});
+</script>
+</body>
+</html>

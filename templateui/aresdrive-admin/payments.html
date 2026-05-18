@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Payments</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left"><h2>Thanh toán</h2><p>Quản lý giao dịch và doanh thu</p></div>
+      <button class="btn btn-secondary btn-sm" onclick="showToast('Đã xuất báo cáo','success')">Xuất báo cáo</button>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card animate-fade-up" style="--card-accent:var(--accent)"><div class="stat-header"><div class="stat-icon" style="background:var(--accent-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" fill="#C8A45C" opacity=".3" stroke="#C8A45C" stroke-width="1.2"/></svg></div><span class="stat-trend up">▲ 18.2%</span></div><div class="stat-value">₫2.84B</div><div class="stat-label">Doanh thu tháng</div></div>
+      <div class="stat-card animate-fade-up" style="--card-accent:var(--success);animation-delay:.05s"><div class="stat-header"><div class="stat-icon" style="background:var(--success-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M3 10l5 5 9-9" stroke="#3ECF8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div><div class="stat-value">₫2.12B</div><div class="stat-label">Đã thanh toán</div></div>
+      <div class="stat-card animate-fade-up" style="--card-accent:var(--warning);animation-delay:.1s"><div class="stat-header"><div class="stat-icon" style="background:var(--warning-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" stroke="#F5A623" stroke-width="1.3"/><path d="M10 6v5M10 13v1" stroke="#F5A623" stroke-width="1.3" stroke-linecap="round"/></svg></div></div><div class="stat-value">₫520M</div><div class="stat-label">Chờ xử lý</div></div>
+      <div class="stat-card animate-fade-up" style="--card-accent:var(--danger);animation-delay:.15s"><div class="stat-header"><div class="stat-icon" style="background:var(--danger-dim)"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M5 5l10 10M15 5L5 15" stroke="#EF5A5A" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="stat-value">₫165M</div><div class="stat-label">Hoàn tiền</div></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card mb-24 animate-fade-up" style="animation-delay:.2s">
+      <div class="card-header"><div><div class="card-title">Doanh thu theo tháng</div><div class="card-subtitle">6 tháng gần nhất</div></div></div>
+      <div class="card-body"><div style="height:240px"><canvas id="paymentChart"></canvas></div></div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="card animate-fade-up" style="animation-delay:.25s">
+      <div class="card-header">
+        <div><div class="card-title">Giao dịch gần đây</div></div>
+        <div class="flex gap-8">
+          <button class="pill-btn active">Tất cả</button>
+          <button class="pill-btn">Thành công</button>
+          <button class="pill-btn">Chờ xử lý</button>
+          <button class="pill-btn">Hoàn tiền</button>
+        </div>
+      </div>
+      <div style="padding:0 24px 24px" class="table-wrapper">
+        <table>
+          <thead><tr><th>Mã GD</th><th>Booking</th><th>Khách hàng</th><th>Phương thức</th><th>Số tiền</th><th>Trạng thái</th><th>Thời gian</th></tr></thead>
+          <tbody id="tx-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('payments');
+document.getElementById('header-root').innerHTML = renderHeader('Payments', 'Quản lý thanh toán');
+
+const transactions = [
+  { id:'TXN-9847', booking:'AD-2847', customer:'Trần Hưng', method:'VNPay', amount:3200000, status:'success', time:'08/04 14:32' },
+  { id:'TXN-9846', booking:'AD-2846', customer:'Mai Linh', method:'MoMo', amount:2700000, status:'success', time:'07/04 09:15' },
+  { id:'TXN-9845', booking:'AD-2845', customer:'Phạm Duy', method:'Chuyển khoản', amount:4500000, status:'pending', time:'08/04 16:45' },
+  { id:'TXN-9844', booking:'AD-2844', customer:'Nguyễn An', method:'VNPay', amount:1800000, status:'success', time:'05/04 11:20' },
+  { id:'TXN-9843', booking:'AD-2843', customer:'Lê Thảo', method:'MoMo', amount:2100000, status:'refunded', time:'04/04 08:55' },
+  { id:'TXN-9842', booking:'AD-2842', customer:'Hoàng Nam', method:'VNPay', amount:1900000, status:'success', time:'03/04 15:10' },
+  { id:'TXN-9841', booking:'AD-2841', customer:'Bùi Hoa', method:'Tiền mặt', amount:2400000, status:'success', time:'02/04 10:30' },
+];
+
+const txStatus = { success:{l:'Thành công',c:'badge-active'}, pending:{l:'Chờ xử lý',c:'badge-pending'}, refunded:{l:'Hoàn tiền',c:'badge-cancelled'} };
+const methodColors = { 'VNPay':'var(--info)', 'MoMo':'#D82D8B', 'Chuyển khoản':'var(--success)', 'Tiền mặt':'var(--warning)' };
+
+document.getElementById('tx-table').innerHTML = transactions.map(t => `
+  <tr>
+    <td style="font-weight:500;color:var(--text-secondary)">${t.id}</td>
+    <td style="color:var(--accent);font-weight:500">#${t.booking}</td>
+    <td>${t.customer}</td>
+    <td><span style="color:${methodColors[t.method]};font-weight:500;font-size:12px">${t.method}</span></td>
+    <td><span class="font-display" style="font-weight:500;color:${t.status==='refunded'?'var(--danger)':'var(--accent)'}">${t.status==='refunded'?'-':''}${formatVND(t.amount)}</span></td>
+    <td><span class="badge ${txStatus[t.status].c}">${txStatus[t.status].l}</span></td>
+    <td style="color:var(--text-muted)">${t.time}</td>
+  </tr>`).join('');
+
+// Chart
+new Chart(document.getElementById('paymentChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Th11', 'Th12', 'Th01', 'Th02', 'Th03', 'Th04'],
+    datasets: [
+      { label: 'Doanh thu', data: [1.8, 2.1, 1.9, 2.3, 2.6, 2.84], backgroundColor: 'rgba(200,164,92,0.6)', borderRadius: 6, borderSkipped: false },
+      { label: 'Hoàn tiền', data: [0.12, 0.08, 0.15, 0.1, 0.18, 0.165], backgroundColor: 'rgba(239,90,90,0.4)', borderRadius: 6, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top', align: 'end', labels: { color: '#8B8D93', font: { size: 11 }, boxWidth: 12, padding: 16 } }, tooltip: { backgroundColor: '#1E242E', bodyColor: '#E8E6E1', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 12, callbacks: { label: c => `${c.dataset.label}: ₫${c.parsed.y}B` } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#555860', font: { size: 11 } }, border: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555860', font: { size: 11 }, callback: v => `₫${v}B` }, border: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>

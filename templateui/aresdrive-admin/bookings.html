@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Bookings</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2>Quản lý Booking</h2>
+        <p>Tất cả đơn đặt xe trên hệ thống</p>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Đã xuất file Excel','success')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 14h8M8 2v9M5 8l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Xuất Excel
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-new-booking')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Tạo booking
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-24 animate-fade-up">
+      <div style="padding:16px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div class="search-box" style="width:200px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#555860" stroke-width="1.3"/><path d="M11 11L14 14" stroke="#555860" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="Tìm mã, tên KH..." id="search-input" oninput="filterTable()">
+        </div>
+        <select class="form-select" style="width:150px;padding:8px 12px" id="filter-status" onchange="filterTable()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="active">Đang thuê</option>
+          <option value="pending">Chờ duyệt</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+        <select class="form-select" style="width:140px;padding:8px 12px" id="filter-type" onchange="filterTable()">
+          <option value="">Tất cả loại</option>
+          <option value="self">AresDrive</option>
+          <option value="p2p">P2P</option>
+          <option value="chauffeur">Có tài xế</option>
+        </select>
+        <div style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+          Hiển thị <strong id="count" style="color:var(--accent)">15</strong> booking
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card animate-fade-up" style="animation-delay:.1s">
+      <div style="padding:0 24px 24px" class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th><input type="checkbox" style="accent-color:var(--accent)"></th>
+            <th>Mã booking</th><th>Xe</th><th>Khách hàng</th><th>Loại</th>
+            <th>Ngày thuê</th><th>Tổng tiền</th><th>Trạng thái</th><th>Hành động</th>
+          </tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div style="padding:0 24px 16px">
+        <div class="pagination">
+          <div class="pagination-info">Trang 1 / 3 — 15 kết quả</div>
+          <div class="pagination-btns">
+            <button class="page-btn" disabled>‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal: New Booking -->
+<div class="modal-overlay" id="modal-new-booking" onclick="if(event.target===this)closeModal('modal-new-booking')">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 class="modal-title">Tạo booking mới</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-booking')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Khách hàng</label>
+          <input class="form-input" placeholder="Tìm tên hoặc SĐT...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Loại booking</label>
+          <select class="form-select">
+            <option>Xe tự lái (AresDrive)</option>
+            <option>Xe tự lái (P2P)</option>
+            <option>Có tài xế</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Xe</label>
+        <select class="form-select">
+          <option>Toyota Camry 2024 — 51A-888.99</option>
+          <option>Honda CR-V 2023 — 59C-321.45</option>
+          <option>Mercedes S450 2024 — 51H-001.23</option>
+          <option>VinFast VF8 2024 — 51K-567.89</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ngày nhận xe</label>
+          <input class="form-input" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ngày trả xe</label>
+          <input class="form-input" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ghi chú</label>
+        <textarea class="form-textarea" placeholder="Ghi chú thêm cho booking..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-new-booking')">Hủy</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-new-booking');showToast('Tạo booking thành công!')">Tạo booking</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('bookings');
+document.getElementById('header-root').innerHTML = renderHeader('Bookings', 'Quản lý đơn đặt xe');
+
+const allBookings = [
+  { id:'AD-2847', car:'Toyota Camry 2024', plate:'51A-888.99', customer:'Trần Hưng', init:'TH', col:'var(--info)', type:'self', typeName:'AresDrive', dates:'08/04 → 12/04', amount:3200000, status:'active' },
+  { id:'AD-2846', car:'Honda CR-V 2023', plate:'59C-321.45', customer:'Mai Linh', init:'ML', col:'var(--success)', type:'p2p', typeName:'P2P', dates:'07/04 → 10/04', amount:2700000, status:'active' },
+  { id:'AD-2845', car:'Mercedes S450 2024', plate:'51H-001.23', customer:'Phạm Duy', init:'PD', col:'var(--accent)', type:'chauffeur', typeName:'Có tài xế', dates:'08/04 → 08/04', amount:4500000, status:'pending' },
+  { id:'AD-2844', car:'VinFast VF8 2024', plate:'51K-567.89', customer:'Nguyễn An', init:'NA', col:'var(--danger)', type:'self', typeName:'AresDrive', dates:'05/04 → 07/04', amount:1800000, status:'completed' },
+  { id:'AD-2843', car:'Hyundai Tucson 2023', plate:'51G-234.56', customer:'Lê Thảo', init:'LT', col:'var(--info)', type:'p2p', typeName:'P2P', dates:'04/04 → 06/04', amount:2100000, status:'cancelled' },
+  { id:'AD-2842', car:'Mazda CX-5 2024', plate:'51F-111.22', customer:'Hoàng Nam', init:'HN', col:'var(--warning)', type:'self', typeName:'AresDrive', dates:'03/04 → 05/04', amount:1900000, status:'completed' },
+  { id:'AD-2841', car:'KIA Sorento 2023', plate:'59D-444.55', customer:'Bùi Hoa', init:'BH', col:'var(--success)', type:'p2p', typeName:'P2P', dates:'02/04 → 04/04', amount:2400000, status:'completed' },
+  { id:'AD-2840', car:'Toyota Fortuner 2024', plate:'51B-777.88', customer:'Đặng Minh', init:'DM', col:'var(--info)', type:'chauffeur', typeName:'Có tài xế', dates:'01/04 → 03/04', amount:5200000, status:'completed' },
+  { id:'AD-2839', car:'Honda City 2023', plate:'51C-222.33', customer:'Võ Trang', init:'VT', col:'var(--accent)', type:'self', typeName:'AresDrive', dates:'30/03 → 01/04', amount:1200000, status:'completed' },
+  { id:'AD-2838', car:'Mitsubishi Xpander 2024', plate:'59E-555.66', customer:'Phan Tú', init:'PT', col:'var(--danger)', type:'p2p', typeName:'P2P', dates:'29/03 → 31/03', amount:1600000, status:'cancelled' },
+];
+
+const statusMap = { active:'Đang thuê', pending:'Chờ duyệt', completed:'Hoàn thành', cancelled:'Đã hủy' };
+
+function renderTable(data) {
+  document.getElementById('count').textContent = data.length;
+  document.getElementById('table-body').innerHTML = data.map(b => `
+    <tr>
+      <td><input type="checkbox" style="accent-color:var(--accent)"></td>
+      <td style="color:var(--accent);font-weight:500">#${b.id}</td>
+      <td><div class="flex items-center gap-12">
+        <div style="width:48px;height:36px;border-radius:6px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center">
+          <svg width="28" height="20" viewBox="0 0 32 24" fill="none" style="opacity:.4"><path d="M4 16V12L8 6H24L28 12V16Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="16" r="2.5" stroke="currentColor"/><circle cx="24" cy="16" r="2.5" stroke="currentColor"/></svg>
+        </div>
+        <div><div style="font-weight:500">${b.car}</div><div style="font-size:11px;color:var(--text-muted)">${b.plate}</div></div>
+      </div></td>
+      <td><div class="flex items-center gap-8">
+        <div class="avatar avatar-sm" style="background:${b.col}15;color:${b.col}">${b.init}</div>
+        <span>${b.customer}</span>
+      </div></td>
+      <td><span class="tag tag-${b.type}">${b.typeName}</span></td>
+      <td style="color:var(--text-secondary)">${b.dates}</td>
+      <td><span class="font-display" style="font-weight:500;color:var(--accent)">${formatVND(b.amount)}</span></td>
+      <td><span class="badge badge-${b.status}">${statusMap[b.status]}</span></td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm btn-icon" title="Xem"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg></button>
+        <button class="btn btn-secondary btn-sm btn-icon" title="Sửa"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l3 3-8 8H2v-3l8-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function filterTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  const type = document.getElementById('filter-type').value;
+  const filtered = allBookings.filter(b => {
+    if (search && !b.id.toLowerCase().includes(search) && !b.customer.toLowerCase().includes(search) && !b.car.toLowerCase().includes(search)) return false;
+    if (status && b.status !== status) return false;
+    if (type && b.type !== type) return false;
+    return true;
+  });
+  renderTable(filtered);
+}
+
+renderTable(allBookings);
+</script>
+</body>
+</html>
