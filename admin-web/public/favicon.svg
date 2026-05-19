@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#0B0E11"/>
+  <path
+    d="M32 5L55 15V33C55 46.6 44.9 55.2 32 59C19.1 55.2 9 46.6 9 33V15L32 5Z"
+    fill="url(#shieldGradient)"
+    stroke="#C8A45C"
+    stroke-width="2"
+  />
+  <path
+    d="M32 18L21.7 45H27.1L29.2 39H34.8L36.9 45H42.3L32 18Z"
+    fill="#0B0E11"
+  />
+  <path d="M30.8 33.4L32 24.2L33.2 33.4H30.8Z" fill="#C8A45C"/>
+  <path
+    d="M32 46.5V52"
+    stroke="#C8A45C"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-dasharray="2 3"
+    opacity="0.75"
+  />
+  <defs>
+    <linearGradient id="shieldGradient" x1="32" y1="5" x2="32" y2="59">
+      <stop stop-color="#E4C97A"/>
+      <stop offset="1" stop-color="#8B6914"/>
+    </linearGradient>
+  </defs>
+</svg>
