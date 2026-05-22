@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AresDrive — Vehicles</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .vehicle-filter-bar { padding: 16px 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .vehicle-search-box { width: 240px; }
+    .vehicle-filter-select { width: 170px; padding: 8px 12px; }
+    .vehicles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .vehicle-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; transition: all var(--transition);
+    }
+    .vehicle-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .vehicle-img {
+      height: 160px; background: var(--bg-secondary); display: flex;
+      align-items: center; justify-content: center; position: relative; color: var(--text-muted);
+    }
+    .vehicle-img svg { width: 80px; height: 60px; opacity: 0.22; }
+    .vehicle-source { position: absolute; top: 10px; left: 10px; }
+    .vehicle-status-dot { position: absolute; top: 10px; right: 10px; }
+    .vehicle-info { padding: 16px; }
+    .vehicle-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .vehicle-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    .vehicle-specs { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border); }
+    .vehicle-spec {
+      display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px;
+      border-radius: var(--radius-xs); color: var(--text-secondary);
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border); font-size: 11px;
+    }
+    .vehicle-card-actions {
+      display: flex; gap: 8px; margin-top: 14px;
+    }
+    .vehicle-card-actions .btn {
+      flex: 1; justify-content: center;
+    }
+    .vehicle-list-shell { position: relative; }
+    .vehicle-empty {
+      display: none; padding: 48px 20px; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--bg-card); color: var(--text-secondary);
+      text-align: center;
+    }
+    .vehicle-pagination {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-top: 20px; padding: 14px 16px;
+    }
+    .vehicle-pagination-summary { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 12px; }
+    .vehicle-pagination-summary strong { color: var(--text-primary); font-weight: 600; }
+    .vehicle-pagination-page { padding-left: 12px; border-left: 1px solid var(--border); color: var(--text-muted); }
+    .vehicle-pagination-controls, .vehicle-page-size { display: flex; align-items: center; gap: 10px; }
+    .vehicle-page-size span { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    .vehicle-page-size-select { width: 82px; height: 34px; padding: 6px 30px 6px 10px; }
+    .vehicle-page-ellipsis { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 34px; color: var(--text-muted); font-size: 12px; }
+    .vehicle-detail-modal { max-width: 960px; }
+    .vehicle-detail-hero {
+      display: grid; grid-template-columns: 240px 1fr; gap: 20px; padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .vehicle-detail-art {
+      min-height: 178px; border: 1px solid var(--border); border-radius: var(--radius-md);
+      background: var(--bg-secondary); display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+    }
+    .vehicle-detail-art svg { width: 112px; height: 84px; opacity: .24; }
+    .vehicle-detail-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .vehicle-detail-title h3 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .vehicle-detail-title p { color: var(--text-muted); font-size: 12px; }
+    .vehicle-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .vehicle-kpi {
+      padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-xs);
+      background: rgba(255,255,255,.02);
+    }
+    .vehicle-kpi label { display: block; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+    .vehicle-kpi strong { color: var(--text-primary); font-size: 13px; font-weight: 600; }
+    .vehicle-detail-body { padding: 24px; }
+    .vehicle-detail-section-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--text-primary); }
+    .vehicle-feature-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .vehicle-feature-chip {
+      padding: 7px 10px; border: 1px solid var(--border); border-radius: 20px;
+      background: rgba(255,255,255,.02); color: var(--text-secondary); font-size: 12px;
+    }
+    .vehicle-detail-actions { display: flex; justify-content: space-between; gap: 8px; width: 100%; }
+    .vehicle-detail-actions-right { display: flex; gap: 8px; }
+    @media (max-width: 900px) {
+      .vehicle-detail-hero { grid-template-columns: 1fr; }
+      .vehicle-kpi-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .vehicle-search-box, .vehicle-filter-select { width: 100%; }
+      .vehicle-pagination { align-items: stretch; flex-direction: column; }
+      .vehicle-pagination-summary, .vehicle-pagination-controls { justify-content: space-between; }
+      .vehicle-pagination-summary { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .vehicle-pagination-page { padding-left: 0; border-left: none; }
+      .pagination-btns { flex-wrap: wrap; justify-content: flex-end; }
+      .vehicle-kpi-row { grid-template-columns: 1fr; }
+      .vehicle-detail-actions, .vehicle-detail-actions-right { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div id="header-root"></div>
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2>Quản lý Xe</h2>
+        <p><span id="vehicle-total-count">0</span> xe trong hệ thống</p>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" id="btn-grid" onclick="setView('grid')" style="background:var(--accent-dim);border-color:var(--border-accent);color:var(--accent)" title="Grid view">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btn-list" onclick="setView('list')" title="List view">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2" width="12" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="6" width="12" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="10" width="12" height="2.5" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openCreateVehicleModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Thêm xe
+        </button>
+      </div>
+    </div>
+
+    <div class="card mb-24 animate-fade-up">
+      <div class="vehicle-filter-bar">
+        <div class="search-box vehicle-search-box">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#555860" stroke-width="1.3"/><path d="M11 11L14 14" stroke="#555860" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="Tìm xe, biển số..." id="vehicle-search" oninput="filterVehicles()">
+        </div>
+        <select class="form-select vehicle-filter-select" id="vehicle-source" onchange="filterVehicles()">
+          <option value="">Tất cả nguồn</option>
+          <option value="owned">AresDrive</option>
+          <option value="p2p">P2P</option>
+        </select>
+        <select class="form-select vehicle-filter-select" id="vehicle-status" onchange="filterVehicles()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="available">Sẵn sàng</option>
+          <option value="rented">Đang thuê</option>
+          <option value="maintenance">Bảo trì</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="resetVehicleFilters()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4.8A5.5 5.5 0 1 1 3 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4 2v3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <div class="vehicle-list-shell">
+      <div id="vehicles-container" class="vehicles-grid"></div>
+      <div id="vehicle-empty" class="vehicle-empty">Không có xe phù hợp với bộ lọc hiện tại.</div>
+    </div>
+
+    <div id="vehicle-pagination" class="vehicle-pagination card animate-fade-up"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-vehicle-detail" onclick="if(event.target===this)closeModal('modal-vehicle-detail')">
+  <div class="modal vehicle-detail-modal" id="vehicle-detail-content"></div>
+</div>
+
+<script src="js/components.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('vehicles');
+document.getElementById('header-root').innerHTML = renderHeader('Vehicles', 'Quản lý đội xe');
+
+const vehicles = [
+  { name:'Toyota Camry 2024', plate:'51A-888.99', brand:'Toyota', model:'Camry', version:'2.5Q', year:2024, seats:5, source:'owned', status:'rented', transmission:'AUTOMATIC', fuel:'GASOLINE', price:800000, trips:47, rating:4.8, city:'TP. Hồ Chí Minh', district:'Quận 1', address:'12 Nguyễn Huệ, Bến Nghé', odometer:'18.200 km', color:'Đen', vin:'JTNB11HK4R3021888', features:['Camera 360', 'Cảnh báo điểm mù', 'Apple CarPlay', 'Ghế da', 'Cửa sổ trời'], description:'Sedan hạng D vận hành êm, nội thất rộng, phù hợp khách doanh nhân và gia đình.' },
+  { name:'Honda CR-V 2023', plate:'59C-321.45', brand:'Honda', model:'CR-V', version:'L', year:2023, seats:7, source:'p2p', status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:900000, trips:32, rating:4.6, city:'TP. Hồ Chí Minh', district:'Quận 7', address:'68 Nguyễn Thị Thập', odometer:'24.600 km', color:'Trắng', vin:'MRHRW1840PP214532', features:['Honda Sensing', 'Camera lùi', 'Cruise Control', 'Cốp điện'], description:'SUV 7 chỗ linh hoạt, khoang hành lý rộng, phù hợp đi tỉnh và gia đình.' },
+  { name:'Mercedes S450 2024', plate:'51H-001.23', brand:'Mercedes-Benz', model:'S-Class', version:'S450 Luxury', year:2024, seats:5, source:'owned', status:'rented', transmission:'AUTOMATIC', fuel:'GASOLINE', price:2500000, trips:18, rating:4.9, city:'TP. Hồ Chí Minh', district:'Quận 3', address:'90 Võ Văn Tần', odometer:'7.800 km', color:'Bạc', vin:'W1K6G6DB7RA133001', features:['Massage seat', 'Ambient light', 'Burmester', 'Air suspension'], description:'Dòng sedan cao cấp cho dịch vụ chauffeur và khách VIP.' },
+  { name:'VinFast VF8 2024', plate:'51K-567.89', brand:'VinFast', model:'VF8', version:'Plus', year:2024, seats:5, source:'owned', status:'available', transmission:'AUTOMATIC', fuel:'ELECTRIC', price:750000, trips:55, rating:4.5, city:'TP. Hồ Chí Minh', district:'Thủ Đức', address:'Vincom Mega Mall', odometer:'15.300 km', color:'Xanh', vin:'RLLVFEV24RD202145', features:['ADAS', 'Màn hình 15.6 inch', 'Sạc nhanh', 'Cửa sổ trời'], description:'Xe điện vận hành mạnh, chi phí nhiên liệu thấp, phù hợp khách thích công nghệ.' },
+  { name:'Hyundai Tucson 2023', plate:'51G-234.56', brand:'Hyundai', model:'Tucson', version:'2.0 Diesel', year:2023, seats:5, source:'p2p', status:'maintenance', transmission:'AUTOMATIC', fuel:'DIESEL', price:700000, trips:28, rating:4.3, city:'TP. Hồ Chí Minh', district:'Tân Bình', address:'2 Trường Sơn', odometer:'31.000 km', color:'Đỏ', vin:'KMHJ381ASN1230987', features:['Camera lùi', 'Cảnh báo lệch làn', 'Phanh tay điện tử'], description:'Đang trong lịch bảo trì định kỳ, dự kiến sẵn sàng sau khi kiểm tra xong.' },
+  { name:'Mazda CX-5 2024', plate:'51F-111.22', brand:'Mazda', model:'CX-5', version:'Premium', year:2024, seats:5, source:'owned', status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:850000, trips:41, rating:4.7, city:'TP. Hồ Chí Minh', district:'Bình Thạnh', address:'208 Điện Biên Phủ', odometer:'11.400 km', color:'Xám', vin:'JM7KF4WLA00124491', features:['Bose', 'HUD', 'Camera 360', 'Ghế nhớ vị trí'], description:'SUV đô thị thiết kế đẹp, nội thất cao cấp, dễ vận hành trong thành phố.' },
+  { name:'KIA Sorento 2023', plate:'59D-444.55', brand:'KIA', model:'Sorento', version:'Signature', year:2023, seats:7, source:'p2p', status:'available', transmission:'AUTOMATIC', fuel:'DIESEL', price:950000, trips:22, rating:4.4, city:'TP. Hồ Chí Minh', district:'Gò Vấp', address:'15 Phan Văn Trị', odometer:'26.500 km', color:'Đen', vin:'KNARH81ABP5129001', features:['Panorama', 'Smart Cruise', 'Cảnh báo va chạm', 'Ghế da'], description:'Xe 7 chỗ tiện nghi, phù hợp chuyến đi gia đình nhiều hành lý.' },
+  { name:'Toyota Fortuner 2024', plate:'51B-777.88', brand:'Toyota', model:'Fortuner', version:'2.7V 4x2', year:2024, seats:7, source:'owned', status:'rented', transmission:'AUTOMATIC', fuel:'GASOLINE', price:1200000, trips:36, rating:4.8, city:'TP. Hồ Chí Minh', district:'Quận 10', address:'3/2, Phường 12', odometer:'13.900 km', color:'Trắng', vin:'MHFBU3GS0R0927164', features:['Camera 360', 'Kiểm soát lực kéo', '7 túi khí'], description:'SUV bền bỉ, gầm cao, thích hợp đi tỉnh và địa hình nhẹ.' },
+  { name:'Honda City 2023', plate:'51C-222.33', brand:'Honda', model:'City', version:'RS', year:2023, seats:5, source:'owned', status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:600000, trips:63, rating:4.6, city:'TP. Hồ Chí Minh', district:'Phú Nhuận', address:'42 Nguyễn Văn Trỗi', odometer:'29.100 km', color:'Đỏ', vin:'MRHGN5890PP910234', features:['Apple CarPlay', 'Camera lùi', 'Cruise Control'], description:'Sedan nhỏ gọn tiết kiệm nhiên liệu, dễ đỗ xe, giá thuê tốt.' },
+  { name:'Mitsubishi Xpander 2024', plate:'59E-555.66', brand:'Mitsubishi', model:'Xpander', version:'AT', year:2024, seats:7, source:'p2p', status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:700000, trips:15, rating:4.2, city:'TP. Hồ Chí Minh', district:'Bình Tân', address:'Aeon Mall Bình Tân', odometer:'9.700 km', color:'Bạc', vin:'MMBJNKB40RH012445', features:['Camera lùi', 'Phanh ABS', 'Keyless Entry'], description:'MPV 7 chỗ thực dụng, chi phí thuê hợp lý cho gia đình.' },
+  { name:'BMW X3 2024', plate:'51D-999.00', brand:'BMW', model:'X3', version:'xDrive30i', year:2024, seats:5, source:'owned', status:'rented', transmission:'AUTOMATIC', fuel:'GASOLINE', price:1800000, trips:12, rating:4.9, city:'TP. Hồ Chí Minh', district:'Quận 2', address:'Thảo Điền', odometer:'6.300 km', color:'Xanh đậm', vin:'WBX57DP09R5W19022', features:['xDrive', 'Harman Kardon', 'HUD', 'Ghế thể thao'], description:'SUV hạng sang mạnh mẽ, phù hợp khách cao cấp và công tác.' },
+  { name:'Ford Ranger 2023', plate:'51E-333.44', brand:'Ford', model:'Ranger', version:'XLS MT', year:2023, seats:5, source:'p2p', status:'available', transmission:'MANUAL', fuel:'DIESEL', price:850000, trips:29, rating:4.5, city:'TP. Hồ Chí Minh', district:'Nhà Bè', address:'Nguyễn Hữu Thọ', odometer:'33.800 km', color:'Cam', vin:'MPBCMFF60PX130044', features:['Camera lùi', 'Gài cầu điện', 'Thùng sau rộng'], description:'Bán tải số sàn, phù hợp chở đồ nhẹ hoặc chuyến đi cần gầm cao.' },
+];
+
+const statusLabels = { available:'Sẵn sàng', rented:'Đang thuê', maintenance:'Bảo trì' };
+const statusClasses = { available:'badge-active', rented:'badge-completed', maintenance:'badge-pending' };
+const sourceLabels = { owned:'AresDrive', p2p:'P2P' };
+const sourceClasses = { owned:'tag-self', p2p:'tag-p2p' };
+const transmissionLabels = { AUTOMATIC:'Tự động', MANUAL:'Số sàn' };
+const fuelLabels = { GASOLINE:'Xăng', DIESEL:'Dầu', ELECTRIC:'Điện', HYBRID:'Hybrid' };
+
+let currentView = 'grid';
+let currentPage = 1;
+let pageSize = 6;
+let currentVehicles = [...vehicles];
+
+function renderVehicles(data) {
+  currentVehicles = data;
+  const totalPages = Math.max(Math.ceil(data.length / pageSize), 1);
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = data.slice(startIndex, startIndex + pageSize);
+  const container = document.getElementById('vehicles-container');
+  const empty = document.getElementById('vehicle-empty');
+
+  document.getElementById('vehicle-total-count').textContent = data.length;
+  empty.style.display = pageItems.length === 0 ? 'block' : 'none';
+  container.style.display = pageItems.length === 0 ? 'none' : 'grid';
+  container.style.gridTemplateColumns = currentView === 'grid' ? 'repeat(auto-fill, minmax(280px, 1fr))' : '1fr';
+
+  container.innerHTML = pageItems.map((v, i) => {
+    const originalIndex = vehicles.indexOf(v);
+    return `
+    <article class="vehicle-card animate-fade-up" style="animation-delay:${i * 0.03}s" ondblclick="openVehicleDetail(${originalIndex})" title="Mở chi tiết xe">
+      <div class="vehicle-img">
+        ${renderCarIcon()}
+        <span class="vehicle-source tag ${sourceClasses[v.source]}">${sourceLabels[v.source]}</span>
+        <span class="vehicle-status-dot badge ${statusClasses[v.status]}">${statusLabels[v.status]}</span>
+      </div>
+      <div class="vehicle-info">
+        <h4>${escapeHtml(v.name)}</h4>
+        <div class="vehicle-meta">${escapeHtml(v.plate)} · ${v.year}</div>
+        <div class="vehicle-specs">
+          <span class="vehicle-spec">${renderPeopleIcon()} ${v.seats} chỗ</span>
+          <span class="vehicle-spec">${renderGaugeIcon()} ${transmissionLabels[v.transmission]}</span>
+          <span class="vehicle-spec">${renderFuelIcon()} ${fuelLabels[v.fuel]}</span>
+        </div>
+        <div class="vehicle-card-actions" onclick="event.stopPropagation()" ondblclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="openVehicleDetail(${originalIndex})">
+            ${renderEyeIcon()}
+            Xem chi tiết
+          </button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  renderPagination(data.length, pageItems.length);
+}
+
+function renderPagination(total, visibleCount) {
+  const pagination = document.getElementById('vehicle-pagination');
+  if (total === 0) {
+    pagination.style.display = 'none';
+    return;
+  }
+
+  pagination.style.display = 'flex';
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+  const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(start + visibleCount - 1, total);
+  const pageButtons = getVisiblePages(currentPage, totalPages).map((page) => {
+    if (page === 'ellipsis') return `<span class="vehicle-page-ellipsis">...</span>`;
+    return `<button class="page-btn ${page === currentPage ? 'active' : ''}" onclick="goToPage(${page})">${page}</button>`;
+  }).join('');
+
+  pagination.innerHTML = `
+    <div class="vehicle-pagination-summary">
+      <span>Hiển thị <strong>${start}</strong>-<strong>${end}</strong> trong <strong>${total}</strong> xe</span>
+      <span class="vehicle-pagination-page">Trang ${currentPage}/${totalPages}</span>
+    </div>
+    <div class="vehicle-pagination-controls">
+      <label class="vehicle-page-size">
+        <span>Số dòng</span>
+        <select class="form-select vehicle-page-size-select" onchange="changePageSize(this.value)" value="${pageSize}">
+          ${[6, 12, 24, 48].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}
+        </select>
+      </label>
+      <div class="pagination-btns">
+        <button class="page-btn" title="Trang đầu" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(1)">«</button>
+        <button class="page-btn" title="Trang trước" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">‹</button>
+        ${pageButtons}
+        <button class="page-btn" title="Trang sau" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">›</button>
+        <button class="page-btn" title="Trang cuối" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${totalPages})">»</button>
+      </div>
+    </div>`;
+}
+
+function filterVehicles() {
+  const search = document.getElementById('vehicle-search').value.toLowerCase();
+  const source = document.getElementById('vehicle-source').value;
+  const status = document.getElementById('vehicle-status').value;
+  currentPage = 1;
+  const filtered = vehicles.filter(v => {
+    if (search && !v.name.toLowerCase().includes(search) && !v.plate.toLowerCase().includes(search)) return false;
+    if (source && v.source !== source) return false;
+    if (status && v.status !== status) return false;
+    return true;
+  });
+  renderVehicles(filtered);
+}
+
+function resetVehicleFilters() {
+  document.getElementById('vehicle-search').value = '';
+  document.getElementById('vehicle-source').value = '';
+  document.getElementById('vehicle-status').value = '';
+  currentPage = 1;
+  renderVehicles(vehicles);
+}
+
+function setView(mode) {
+  currentView = mode;
+  const btnGrid = document.getElementById('btn-grid');
+  const btnList = document.getElementById('btn-list');
+  if (mode === 'grid') {
+    btnGrid.style.cssText = 'background:var(--accent-dim);border-color:var(--border-accent);color:var(--accent)';
+    btnList.style.cssText = '';
+  } else {
+    btnList.style.cssText = 'background:var(--accent-dim);border-color:var(--border-accent);color:var(--accent)';
+    btnGrid.style.cssText = '';
+  }
+  renderVehicles(currentVehicles);
+}
+
+function goToPage(page) {
+  const totalPages = Math.max(Math.ceil(currentVehicles.length / pageSize), 1);
+  currentPage = Math.min(Math.max(page, 1), totalPages);
+  renderVehicles(currentVehicles);
+}
+
+function changePageSize(nextSize) {
+  pageSize = Number(nextSize);
+  currentPage = 1;
+  renderVehicles(currentVehicles);
+}
+
+function openCreateVehicleModal() {
+  renderVehicleDetail(null);
+  openModal('modal-vehicle-detail');
+}
+
+function openVehicleDetail(index) {
+  renderVehicleDetail(vehicles[index]);
+  openModal('modal-vehicle-detail');
+}
+
+function renderVehicleDetail(vehicle) {
+  const isCreate = !vehicle;
+  const v = vehicle || {
+    name:'Xe mới', plate:'', brand:'Toyota', model:'', version:'', year:2024, seats:5, source:'owned',
+    status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:800000, trips:0, rating:0,
+    city:'TP. Hồ Chí Minh', district:'', address:'', odometer:'0 km', color:'', vin:'',
+    features:['Camera lùi', 'Bluetooth'], description:''
+  };
+
+  document.getElementById('vehicle-detail-content').innerHTML = `
+    <div class="modal-header">
+      <h3 class="modal-title">${isCreate ? 'Tạo xe mới' : 'Chi tiết xe'}</h3>
+      <button class="modal-close" onclick="closeModal('modal-vehicle-detail')">✕</button>
+    </div>
+    <div class="vehicle-detail-hero">
+      <div class="vehicle-detail-art">${renderCarIcon()}</div>
+      <div>
+        <div class="vehicle-detail-title-row">
+          <div class="vehicle-detail-title">
+            <h3>${escapeHtml(v.name)}</h3>
+            <p>${isCreate ? 'Form mẫu cho luồng tạo xe' : `${escapeHtml(v.plate)} · ${escapeHtml(sourceLabels[v.source])}`}</p>
+          </div>
+          <span class="badge ${statusClasses[v.status]}">${statusLabels[v.status]}</span>
+        </div>
+        <div class="vehicle-kpi-row">
+          <div class="vehicle-kpi"><label>Giá/ngày</label><strong class="text-accent">${formatVND(v.price)}</strong></div>
+          <div class="vehicle-kpi"><label>Chuyến</label><strong>${v.trips}</strong></div>
+          <div class="vehicle-kpi"><label>Đánh giá</label><strong>${v.rating ? `⭐ ${v.rating}` : 'Chưa có'}</strong></div>
+          <div class="vehicle-kpi"><label>Odometer</label><strong>${escapeHtml(v.odometer)}</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="vehicle-detail-body">
+      <div class="vehicle-detail-section-title">Thông tin cơ bản</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tên hiển thị</label><input class="form-input" value="${escapeAttr(v.name)}"></div>
+        <div class="form-group"><label class="form-label">Biển số</label><input class="form-input" value="${escapeAttr(v.plate)}" placeholder="VD: 51A-888.99"></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Hãng xe</label><input class="form-input" value="${escapeAttr(v.brand)}"></div>
+        <div class="form-group"><label class="form-label">Model</label><input class="form-input" value="${escapeAttr(v.model)}"></div>
+        <div class="form-group"><label class="form-label">Phiên bản</label><input class="form-input" value="${escapeAttr(v.version)}"></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Năm SX</label><input class="form-input" type="number" value="${v.year}"></div>
+        <div class="form-group"><label class="form-label">Số chỗ</label><input class="form-input" type="number" value="${v.seats}"></div>
+        <div class="form-group"><label class="form-label">Màu xe</label><input class="form-input" value="${escapeAttr(v.color)}"></div>
+      </div>
+
+      <div class="vehicle-detail-section-title">Khai thác & trạng thái</div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Nguồn</label><select class="form-select">${renderOption('owned', 'AresDrive', v.source)}${renderOption('p2p', 'P2P', v.source)}</select></div>
+        <div class="form-group"><label class="form-label">Trạng thái</label><select class="form-select">${renderOption('available', 'Sẵn sàng', v.status)}${renderOption('rented', 'Đang thuê', v.status)}${renderOption('maintenance', 'Bảo trì', v.status)}</select></div>
+        <div class="form-group"><label class="form-label">Giá thuê/ngày</label><input class="form-input" type="number" value="${v.price}"></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Hộp số</label><select class="form-select">${renderOption('AUTOMATIC', 'Tự động', v.transmission)}${renderOption('MANUAL', 'Số sàn', v.transmission)}</select></div>
+        <div class="form-group"><label class="form-label">Nhiên liệu</label><select class="form-select">${renderOption('GASOLINE', 'Xăng', v.fuel)}${renderOption('DIESEL', 'Dầu', v.fuel)}${renderOption('ELECTRIC', 'Điện', v.fuel)}${renderOption('HYBRID', 'Hybrid', v.fuel)}</select></div>
+        <div class="form-group"><label class="form-label">Số VIN</label><input class="form-input" value="${escapeAttr(v.vin)}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Chủ xe (host)</label><input class="form-input" value="${escapeAttr(getOwnerName(v))}" readonly placeholder="Chỉ áp dụng với xe P2P"></div>
+      </div>
+
+      <div class="vehicle-detail-section-title">Vị trí giao nhận</div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Thành phố</label><input class="form-input" value="${escapeAttr(v.city)}"></div>
+        <div class="form-group"><label class="form-label">Quận/Huyện</label><input class="form-input" value="${escapeAttr(v.district)}"></div>
+        <div class="form-group"><label class="form-label">Odometer</label><input class="form-input" value="${escapeAttr(v.odometer)}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Địa chỉ nhận xe</label><input class="form-input" value="${escapeAttr(v.address)}"></div>
+      <div class="form-group"><label class="form-label">Mô tả</label><textarea class="form-textarea">${escapeHtml(v.description)}</textarea></div>
+
+      <div class="vehicle-detail-section-title">Tiện ích</div>
+      <div class="vehicle-feature-grid">${v.features.map(feature => `<span class="vehicle-feature-chip">${escapeHtml(feature)}</span>`).join('')}</div>
+    </div>
+    <div class="modal-footer">
+      <div class="vehicle-detail-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-vehicle-detail')">Đóng</button>
+        <div class="vehicle-detail-actions-right">
+          ${isCreate ? '' : '<button class="btn btn-secondary" onclick="showToast(\'Đã mở trạng thái chỉnh sửa mẫu\')">Chỉnh sửa</button>'}
+          <button class="btn btn-primary" onclick="closeModal('modal-vehicle-detail');showToast('${isCreate ? 'Tạo xe thành công!' : 'Cập nhật xe thành công!'}')">${isCreate ? 'Tạo xe' : 'Lưu thay đổi'}</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function getVisiblePages(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+  if (current <= 4) return [1, 2, 3, 4, 5, 'ellipsis', total];
+  if (current >= total - 3) return [1, 'ellipsis', total - 4, total - 3, total - 2, total - 1, total];
+  return [1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', total];
+}
+
+function renderOption(value, label, current) {
+  return `<option value="${value}" ${value === current ? 'selected' : ''}>${label}</option>`;
+}
+
+// Mirrors backend: ownerCustomerName comes from a cross-module lookup on
+// customer.customers and is only populated for HOST_OWNED (P2P) vehicles.
+const sampleOwnerNames = ['Trần Thị Hương', 'Lê Văn Cường', 'Phạm Quỳnh Anh', 'Đỗ Minh Khoa', 'Nguyễn Bảo Yến'];
+function getOwnerName(v) {
+  if (v.source !== 'p2p') return '';
+  const idx = vehicles.indexOf(v);
+  return sampleOwnerNames[idx % sampleOwnerNames.length];
+}
+
+function renderCarIcon() {
+  return `<svg viewBox="0 0 80 60" fill="none"><path d="M10 40V30L20 14H60L70 30V40Z" stroke="currentColor" stroke-width="1.5"/><circle cx="20" cy="40" r="6" stroke="currentColor" stroke-width="1.5"/><circle cx="60" cy="40" r="6" stroke="currentColor" stroke-width="1.5"/><line x1="20" y1="30" x2="60" y2="30" stroke="currentColor" stroke-width="0.8"/></svg>`;
+}
+
+function renderPeopleIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/><circle cx="10.5" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c.4-2.2 1.7-3.4 3.5-3.4S8.6 10.8 9 13M7 13c.4-2.2 1.7-3.4 3.5-3.4S13.6 10.8 14 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+}
+
+function renderGaugeIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 11a5 5 0 1 1 10 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8 10l3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+}
+
+function renderFuelIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 2h5v12H4V2Z" stroke="currentColor" stroke-width="1.2"/><path d="M9 5h2l1 1v6a1 1 0 0 0 2 0V7l-2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+}
+
+function renderEyeIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8s2.2-4 6-4s6 4 6 4s-2.2 4-6 4s-6-4-6-4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/></svg>`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  }[char]));
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/`/g, '&#096;');
+}
+
+renderVehicles(vehicles);
+</script>
+</body>
+</html>
