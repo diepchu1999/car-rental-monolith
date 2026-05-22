@@ -5,6 +5,7 @@ import { getVehiclesPage } from "../api/vehicleAPI";
 import { VehicleCard } from "../components/VehicleCard";
 import { VehicleDetailModal } from "../components/VehicleDetailModal";
 import { VehicleFilters } from "../components/VehicleFilters";
+import { VehicleFormModal } from "../components/VehicleFormModal";
 import { VehiclePagination } from "../components/VehiclePagination";
 import {
   VehicleEmptyState,
@@ -15,11 +16,17 @@ import {
   VehicleViewToggle,
   type VehicleViewMode,
 } from "../components/VehicleViewToggle";
-import type { VehicleFiltersState } from "../types";
+import type {
+  SortDirection,
+  VehicleFiltersState,
+  VehicleSort,
+} from "../types";
 import "./vehicles.css";
 
 const VEHICLE_VIEW_MODE_STORAGE_KEY = "vehicle-view-mode";
 const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_SORT_BY: VehicleSort = "CREATED_AT";
+const DEFAULT_SORT_DIR: SortDirection = "DESC";
 
 function loadViewMode(): VehicleViewMode {
   return localStorage.getItem(VEHICLE_VIEW_MODE_STORAGE_KEY) === "list"
@@ -29,19 +36,35 @@ function loadViewMode(): VehicleViewMode {
 
 export function VehicleListPage() {
   const [filters, setFilters] = useState<VehicleFiltersState>({});
+  const [sortBy, setSortBy] = useState<VehicleSort>(DEFAULT_SORT_BY);
+  const [sortDir, setSortDir] = useState<SortDirection>(DEFAULT_SORT_DIR);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(DEFAULT_PAGE_SIZE);
   const [viewMode, setViewMode] = useState<VehicleViewMode>(loadViewMode);
   const [detailVehicleId, setDetailVehicleId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const vehiclesQuery = useQuery({
-    queryKey: ["vehicles", "paged", filters, page, size],
-    queryFn: () => getVehiclesPage({ ...filters, page, size }),
+    queryKey: ["vehicles", "paged", filters, sortBy, sortDir, page, size],
+    queryFn: () =>
+      getVehiclesPage({
+        ...filters,
+        page,
+        size,
+        sortBy,
+        sortDir,
+      }),
     placeholderData: keepPreviousData,
   });
 
   function handleFiltersChange(nextFilters: VehicleFiltersState) {
     setFilters(nextFilters);
+    setPage(1);
+  }
+
+  function handleSortChange(nextSortBy: VehicleSort, nextSortDir: SortDirection) {
+    setSortBy(nextSortBy);
+    setSortDir(nextSortDir);
     setPage(1);
   }
 
@@ -57,6 +80,8 @@ export function VehicleListPage() {
 
   function handleReset() {
     setFilters({});
+    setSortBy(DEFAULT_SORT_BY);
+    setSortDir(DEFAULT_SORT_DIR);
     setPage(1);
   }
 
@@ -65,6 +90,10 @@ export function VehicleListPage() {
   const showEmptyState = vehiclesQuery.isSuccess && vehicles.length === 0;
   const showLoadingState = vehiclesQuery.isLoading && !pageData;
   const showPagination = pageData && pageData.total > 0;
+  const errorMessage =
+    vehiclesQuery.error instanceof Error
+      ? vehiclesQuery.error.message
+      : undefined;
 
   return (
     <>
@@ -84,7 +113,11 @@ export function VehicleListPage() {
             <RefreshCw size={14} />
             {vehiclesQuery.isFetching ? "Đang tải" : "Làm mới"}
           </button>
-          <button className="btn btn-primary btn-sm" type="button">
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            onClick={() => setCreateOpen(true)}
+          >
             <Plus size={16} />
             Thêm xe
           </button>
@@ -93,13 +126,19 @@ export function VehicleListPage() {
 
       <VehicleFilters
         filters={filters}
+        sortBy={sortBy}
+        sortDir={sortDir}
         onChange={handleFiltersChange}
+        onSortChange={handleSortChange}
         onReset={handleReset}
       />
 
       {showLoadingState ? <VehicleLoadingState /> : null}
       {vehiclesQuery.isError ? (
-        <VehicleErrorState onRetry={vehiclesQuery.refetch} />
+        <VehicleErrorState
+          message={errorMessage}
+          onRetry={vehiclesQuery.refetch}
+        />
       ) : null}
       {showEmptyState ? <VehicleEmptyState /> : null}
 
@@ -111,7 +150,7 @@ export function VehicleListPage() {
           <div className={`vehicles-grid vehicles-${viewMode}-view`}>
             {vehicles.map((vehicle) => (
               <VehicleCard
-                key={vehicle.id ?? vehicle.licensePlate}
+                key={vehicle.id}
                 vehicle={vehicle}
                 viewMode={viewMode}
                 onViewDetail={setDetailVehicleId}
@@ -138,6 +177,12 @@ export function VehicleListPage() {
       <VehicleDetailModal
         vehicleId={detailVehicleId}
         onClose={() => setDetailVehicleId(null)}
+      />
+
+      <VehicleFormModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(id) => setDetailVehicleId(id)}
       />
     </>
   );

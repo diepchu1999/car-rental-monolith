@@ -1,5 +1,6 @@
 type VehicleErrorStateProps = {
   onRetry: () => void;
+  message?: string;
 };
 
 export function VehicleLoadingState() {
@@ -10,14 +11,14 @@ export function VehicleLoadingState() {
   );
 }
 
-export function VehicleErrorState({ onRetry }: VehicleErrorStateProps) {
+export function VehicleErrorState({ onRetry, message }: VehicleErrorStateProps) {
   return (
     <div className="card">
       <div className="card-body vehicle-state">
         <div>
           <div className="vehicle-state-title">Không tải được danh sách xe</div>
           <div className="vehicle-state-description">
-            Kiểm tra backend đang chạy ở port 8080 và CORS đã được bật.
+            {message ?? "Kiểm tra backend đang chạy ở port 8080 và CORS đã được bật."}
           </div>
         </div>
         <button className="btn btn-secondary btn-sm" type="button" onClick={onRetry}>

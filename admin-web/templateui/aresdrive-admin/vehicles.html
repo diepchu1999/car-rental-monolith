@@ -338,7 +338,7 @@ function renderVehicleDetail(vehicle) {
   const v = vehicle || {
     name:'Xe mới', plate:'', brand:'Toyota', model:'', version:'', year:2024, seats:5, source:'owned',
     status:'available', transmission:'AUTOMATIC', fuel:'GASOLINE', price:800000, trips:0, rating:0,
-    city:'TP. Hồ Chí Minh', district:'', address:'', odometer:'0 km', color:'', vin:'',
+    provinceCode:'79', communeCode:'79-01', district:'', address:'', odometer:'0 km', color:'', vin:'',
     features:['Camera lùi', 'Bluetooth'], description:''
   };
 
@@ -396,14 +396,19 @@ function renderVehicleDetail(vehicle) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Chủ xe (host)</label><input class="form-input" value="${escapeAttr(getOwnerName(v))}" readonly placeholder="Chỉ áp dụng với xe P2P"></div>
       </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Mã tài sản (asset code)</label><input class="form-input" value="${escapeAttr(getAssetCode(v))}" placeholder="Chỉ áp dụng với xe AresDrive"></div>
+        <div class="form-group"><label class="form-label">Chi nhánh</label><select class="form-select">${renderBranchOptions()}</select></div>
+      </div>
 
       <div class="vehicle-detail-section-title">Vị trí giao nhận</div>
-      <div class="form-row-3">
-        <div class="form-group"><label class="form-label">Thành phố</label><input class="form-input" value="${escapeAttr(v.city)}"></div>
-        <div class="form-group"><label class="form-label">Quận/Huyện</label><input class="form-input" value="${escapeAttr(v.district)}"></div>
-        <div class="form-group"><label class="form-label">Odometer</label><input class="form-input" value="${escapeAttr(v.odometer)}"></div>
+      <div class="form-row-2">
+        <div class="form-group"><label class="form-label">Tỉnh / Thành phố *</label><select class="form-select">${renderProvinceOptions(v.provinceCode)}</select></div>
+        <div class="form-group"><label class="form-label">Xã / Phường / Đặc khu *</label><select class="form-select">${renderCommuneOptions(v.provinceCode, v.communeCode)}</select></div>
       </div>
-      <div class="form-group"><label class="form-label">Địa chỉ nhận xe</label><input class="form-input" value="${escapeAttr(v.address)}"></div>
+      ${v.district ? `<div class="form-group"><label class="form-label">Quận / Huyện (dữ liệu cũ, chỉ đọc)</label><input class="form-input" value="${escapeAttr(v.district)}" readonly></div>` : ''}
+      <div class="form-group"><label class="form-label">Odometer</label><input class="form-input" value="${escapeAttr(v.odometer)}"></div>
+      <div class="form-group"><label class="form-label">Địa chỉ chi tiết (số nhà, đường, thôn/tổ)</label><input class="form-input" value="${escapeAttr(v.address)}"></div>
       <div class="form-group"><label class="form-label">Mô tả</label><textarea class="form-textarea">${escapeHtml(v.description)}</textarea></div>
 
       <div class="vehicle-detail-section-title">Tiện ích</div>
@@ -438,6 +443,48 @@ function getOwnerName(v) {
   if (v.source !== 'p2p') return '';
   const idx = vehicles.indexOf(v);
   return sampleOwnerNames[idx % sampleOwnerNames.length];
+}
+
+// Mirrors backend create flow: for COMPANY_OWNED (AresDrive) vehicles the admin
+// supplies an asset code + branch, and the server provisions the matching
+// fleet.company_vehicles record through the fleet module's FleetVehicleProvisioning
+// port (no pre-existing fleet vehicle is picked).
+const sampleBranches = ['SGN-Q1 · Quận 1', 'SGN-Q7 · Quận 7', 'HAN-HK · Hoàn Kiếm', 'DAD-HC · Hải Châu'];
+function getAssetCode(v) {
+  if (v.source !== 'owned') return '';
+  const idx = vehicles.indexOf(v);
+  return 'ASSET-' + String((idx >= 0 ? idx : 0) + 1).padStart(5, '0');
+}
+function renderBranchOptions() {
+  return ['<option value="">— Không gán chi nhánh —</option>']
+    .concat(sampleBranches.map(branch => `<option value="${escapeAttr(branch)}">${escapeHtml(branch)}</option>`))
+    .join('');
+}
+
+// Danh mục hành chính 2 cấp (mô hình 2025). Dữ liệu mẫu minh họa UI — bản thật
+// lấy từ API /admin/locations (province_code / commune_code chính thức).
+const sampleProvinces = [
+  { code: '79', name: 'TP. Hồ Chí Minh' },
+  { code: '01', name: 'TP. Hà Nội' },
+  { code: '48', name: 'TP. Đà Nẵng' },
+];
+const sampleCommunes = {
+  '79': [{ code: '79-01', name: 'Phường Bến Thành' }, { code: '79-02', name: 'Phường Sài Gòn' }],
+  '01': [{ code: '01-01', name: 'Phường Ba Đình' }, { code: '01-02', name: 'Phường Hoàn Kiếm' }],
+  '48': [{ code: '48-01', name: 'Phường Hải Châu' }, { code: '48-02', name: 'Phường Thanh Khê' }],
+};
+function renderProvinceOptions(selected) {
+  return ['<option value="">— Chọn tỉnh/thành —</option>']
+    .concat(sampleProvinces.map(p =>
+      `<option value="${escapeAttr(p.code)}"${p.code === selected ? ' selected' : ''}>${escapeHtml(p.name)}</option>`))
+    .join('');
+}
+function renderCommuneOptions(provinceCode, selected) {
+  const list = sampleCommunes[provinceCode] || [];
+  return ['<option value="">— Chọn xã/phường —</option>']
+    .concat(list.map(c =>
+      `<option value="${escapeAttr(c.code)}"${c.code === selected ? ' selected' : ''}>${escapeHtml(c.name)}</option>`))
+    .join('');
 }
 
 function renderCarIcon() {

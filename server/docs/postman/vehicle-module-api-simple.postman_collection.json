@@ -1,0 +1,832 @@
+{
+  "info": {
+    "_postman_id": "38bb42af-82d7-4e1e-b6ef-7120d79f9b16",
+    "name": "Vehicle Module API - Simple",
+    "description": "Collection don gian de test Vehicle module. Khong co pre-request script, test script hoac auto-save variables. Ban tu dien cac bien vehicleId, hostCustomerId, fleetVehicleId trong Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "vehicleId",
+      "value": "PUT_VEHICLE_ID_HERE",
+      "type": "string"
+    },
+    {
+      "key": "hostCustomerId",
+      "value": "PUT_CUSTOMER_ID_HERE",
+      "type": "string"
+    },
+    {
+      "key": "fleetVehicleId",
+      "value": "PUT_FLEET_VEHICLE_ID_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Helpers - Related data",
+      "item": [
+        {
+          "name": "Search customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers/search?q=&page=1&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "customers",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search fleet vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/fleet/vehicles/search?q=&page=1&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "fleet",
+                "vehicles",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List fleet branches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/fleet/branches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "fleet",
+                "branches"
+              ],
+              "query": []
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicle - Read",
+      "item": [
+        {
+          "name": "List vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles"
+              ],
+              "query": []
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List vehicles by source/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles?source=HOST_OWNED&status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles"
+              ],
+              "query": [
+                {
+                  "key": "source",
+                  "value": "HOST_OWNED",
+                  "disabled": false
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Paged vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/paged?page=1&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "paged"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Paged vehicles - search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/paged?q=Toyota&page=1&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "paged"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Toyota",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Paged vehicles - filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/paged?source=HOST_OWNED&status=ACTIVE&listingStatus=PUBLISHED&city=Ho%20Chi%20Minh&fuelType=GASOLINE&transmission=AUTOMATIC&seats=5&minRate=500000&maxRate=2500000&hasBookings=true&sortBy=CREATED_AT&sortDir=DESC&page=1&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "paged"
+              ],
+              "query": [
+                {
+                  "key": "source",
+                  "value": "HOST_OWNED",
+                  "disabled": false
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "disabled": false
+                },
+                {
+                  "key": "listingStatus",
+                  "value": "PUBLISHED",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "Ho Chi Minh",
+                  "disabled": false
+                },
+                {
+                  "key": "fuelType",
+                  "value": "GASOLINE",
+                  "disabled": false
+                },
+                {
+                  "key": "transmission",
+                  "value": "AUTOMATIC",
+                  "disabled": false
+                },
+                {
+                  "key": "seats",
+                  "value": "5",
+                  "disabled": false
+                },
+                {
+                  "key": "minRate",
+                  "value": "500000",
+                  "disabled": false
+                },
+                {
+                  "key": "maxRate",
+                  "value": "2500000",
+                  "disabled": false
+                },
+                {
+                  "key": "hasBookings",
+                  "value": "true",
+                  "disabled": false
+                },
+                {
+                  "key": "sortBy",
+                  "value": "CREATED_AT",
+                  "disabled": false
+                },
+                {
+                  "key": "sortDir",
+                  "value": "DESC",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get vehicle detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}"
+              ],
+              "query": []
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicle - Create",
+      "item": [
+        {
+          "name": "Create HOST_OWNED vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"HOST_OWNED\",\n  \"ownerCustomerId\": \"{{hostCustomerId}}\",\n  \"fleetVehicleId\": null,\n  \"brand\": \"Toyota\",\n  \"model\": \"Vios\",\n  \"version\": \"Postman Simple Test\",\n  \"manufactureYear\": 2024,\n  \"licensePlate\": \"TEST-12345\",\n  \"seats\": 5,\n  \"transmission\": \"AUTOMATIC\",\n  \"fuelType\": \"GASOLINE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create COMPANY_OWNED vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"COMPANY_OWNED\",\n  \"ownerCustomerId\": null,\n  \"fleetVehicleId\": \"{{fleetVehicleId}}\",\n  \"brand\": \"Ford\",\n  \"model\": \"Transit\",\n  \"version\": \"Postman Simple Fleet Test\",\n  \"manufactureYear\": 2023,\n  \"licensePlate\": \"CMP-12345\",\n  \"seats\": 16,\n  \"transmission\": \"MANUAL\",\n  \"fuelType\": \"DIESEL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicle - Update related data",
+      "item": [
+        {
+          "name": "Update listing",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/listing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "listing"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Toyota Vios test listing\",\n  \"description\": \"Listing tao tu Postman de test module vehicle.\",\n  \"city\": \"Ho Chi Minh\",\n  \"district\": \"Quan 1\",\n  \"pickupAddress\": \"1 Nguyen Hue, Quan 1, TP.HCM\",\n  \"baseDailyRate\": 850000,\n  \"currency\": \"VND\",\n  \"instantBookingEnabled\": true,\n  \"deliveryEnabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync images",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "images"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"images\": [\n    {\n      \"fileUrl\": \"https://picsum.photos/seed/ares-vehicle-cover/900/600\",\n      \"sortOrder\": 0,\n      \"cover\": true\n    },\n    {\n      \"fileUrl\": \"https://picsum.photos/seed/ares-vehicle-side/900/600\",\n      \"sortOrder\": 1,\n      \"cover\": false\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync features",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/features",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "features"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"features\": [\n    {\n      \"code\": \"bluetooth\",\n      \"name\": \"Bluetooth\"\n    },\n    {\n      \"code\": \"backup_camera\",\n      \"name\": \"Camera lui\"\n    },\n    {\n      \"code\": \"gps\",\n      \"name\": \"GPS\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert price plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/price-plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "price-plan"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Simple Price Plan\",\n  \"baseDailyRate\": 850000,\n  \"hourlyRate\": 120000,\n  \"weekendMultiplier\": 1.2,\n  \"depositAmount\": 1000000,\n  \"currency\": \"VND\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicle - Status actions",
+      "item": [
+        {
+          "name": "Vehicle status - activate",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"activate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vehicle status - suspend",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"suspend\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vehicle status - deactivate",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"deactivate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listing status - publish",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/listing/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "listing",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"publish\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listing status - pause",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/listing/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "listing",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"pause\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listing status - draft",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/listing/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "listing",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"draft\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listing status - archive",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/vehicles/{{vehicleId}}/listing/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "vehicles",
+                "{{vehicleId}}",
+                "listing",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"archive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

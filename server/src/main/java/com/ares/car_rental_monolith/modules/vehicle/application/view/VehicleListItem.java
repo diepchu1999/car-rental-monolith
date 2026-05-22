@@ -1,0 +1,39 @@
+package com.ares.car_rental_monolith.modules.vehicle.application.view;
+
+import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleFuelType;
+import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleSource;
+import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleStatus;
+import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleTransmission;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+public record VehicleListItem(
+        UUID id,
+        UUID ownerCustomerId,
+        String ownerCustomerName,
+        String hostCode,
+        UUID fleetVehicleId,
+        String assetCode,
+        String branchName,
+        VehicleSource source,
+        String brand,
+        String model,
+        String version,
+        Integer manufactureYear,
+        String licensePlate,
+        Integer seats,
+        VehicleTransmission transmission,
+        VehicleFuelType fuelType,
+        VehicleStatus status,
+        String listingStatus,
+        String city,
+        String district,
+        BigDecimal baseDailyRate,
+        String coverImageUrl,
+        long featureCount,
+        long activeAvailabilityBlockCount,
+        long bookingCount,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
+) {}

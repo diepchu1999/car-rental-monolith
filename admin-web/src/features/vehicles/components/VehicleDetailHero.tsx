@@ -1,5 +1,6 @@
 import { CarFront } from "lucide-react";
-import type { Vehicle } from "../types";
+import type { AdminVehicleDetail } from "../types";
+import { resolveVehicleImageUrl } from "../api/vehicleAPI";
 import {
   vehicleFuelTypeLabel,
   vehicleSourceClassName,
@@ -10,7 +11,7 @@ import {
 } from "../constants";
 
 type VehicleDetailHeroProps = {
-  vehicle: Vehicle;
+  vehicle: AdminVehicleDetail;
 };
 
 export function VehicleDetailHero({ vehicle }: VehicleDetailHeroProps) {
@@ -18,10 +19,19 @@ export function VehicleDetailHero({ vehicle }: VehicleDetailHeroProps) {
     .filter(Boolean)
     .join(" ");
 
+  const coverImage =
+    vehicle.images.find((image) => image.cover)?.fileUrl ??
+    vehicle.images[0]?.fileUrl ??
+    null;
+
   return (
     <div className="vehicle-detail-hero">
       <div className="vehicle-detail-art">
-        <CarFront size={112} strokeWidth={1.2} />
+        {coverImage ? (
+          <img src={resolveVehicleImageUrl(coverImage)} alt={vehicleName} />
+        ) : (
+          <CarFront size={112} strokeWidth={1.2} />
+        )}
       </div>
       <div>
         <div className="vehicle-detail-title-row">
@@ -44,7 +54,10 @@ export function VehicleDetailHero({ vehicle }: VehicleDetailHeroProps) {
           <KpiCell label="Số chỗ" value={`${vehicle.seats} chỗ`} />
           <KpiCell
             label="Hộp số"
-            value={vehicleTransmissionLabel[vehicle.transmission] ?? vehicle.transmission}
+            value={
+              vehicleTransmissionLabel[vehicle.transmission] ??
+              vehicle.transmission
+            }
           />
           <KpiCell
             label="Nhiên liệu"
