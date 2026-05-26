@@ -806,6 +806,16 @@ img {
   font-size: 13px;
   outline: none;
   transition: all var(--transition);
+  /* Render native controls (incl. <select> popup) in dark scheme so option
+     lists stay readable regardless of which class a select uses. */
+  color-scheme: dark;
+}
+
+/* Safeguard: theme option lists for ANY themed select, not just .form-select. */
+.form-input option,
+.form-select option {
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .form-input:focus,

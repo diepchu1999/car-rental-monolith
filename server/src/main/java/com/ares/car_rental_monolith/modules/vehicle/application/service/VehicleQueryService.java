@@ -2,11 +2,12 @@ package com.ares.car_rental_monolith.modules.vehicle.application.service;
 
 import com.ares.car_rental_monolith.modules.vehicle.application.port.in.GetVehicleUseCase;
 import com.ares.car_rental_monolith.modules.vehicle.application.port.in.ListVehiclesUseCase;
-import com.ares.car_rental_monolith.modules.vehicle.application.port.in.PageVehiclesUseCase;
+import com.ares.car_rental_monolith.modules.vehicle.application.port.in.PageVehicleListUseCase;
 import com.ares.car_rental_monolith.modules.vehicle.application.port.out.LoadVehiclePort;
 import com.ares.car_rental_monolith.modules.vehicle.application.query.ListVehiclesQuery;
 import com.ares.car_rental_monolith.modules.vehicle.application.query.PageVehiclesQuery;
 import com.ares.car_rental_monolith.modules.vehicle.application.view.VehicleDetail;
+import com.ares.car_rental_monolith.modules.vehicle.application.view.VehicleListItem;
 import com.ares.car_rental_monolith.modules.vehicle.domain.Vehicle;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
 import com.ares.car_rental_monolith.shared.error.DomainException;
@@ -17,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-class VehicleQueryService
-        implements ListVehiclesUseCase, PageVehiclesUseCase, GetVehicleUseCase {
+class VehicleQueryService implements ListVehiclesUseCase, PageVehicleListUseCase, GetVehicleUseCase {
 
     private final LoadVehiclePort loadVehiclePort;
 
@@ -32,8 +32,8 @@ class VehicleQueryService
     }
 
     @Override
-    public PageResponse<Vehicle> handle(PageVehiclesQuery query) {
-        return loadVehiclePort.loadVehiclePage(query);
+    public PageResponse<VehicleListItem> handle(PageVehiclesQuery query) {
+        return loadVehiclePort.loadVehicleListPage(query);
     }
 
     @Override

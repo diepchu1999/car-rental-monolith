@@ -9,8 +9,8 @@ public record ListVehiclesQuery(
 ) {
     public static ListVehiclesQuery from(String source, String status) {
         return new ListVehiclesQuery(
-                Enums.parse(VehicleSource.class, source),
-                Enums.parse(VehicleStatus.class, status)
+                Enums.parseStrict(VehicleSource.class, "source", source),
+                Enums.parseStrict(VehicleStatus.class, "status", status)
         );
     }
 }

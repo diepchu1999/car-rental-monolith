@@ -58,3 +58,40 @@ export const vehicleStatusOptions: Array<{
   { value: "INACTIVE", label: vehicleStatusLabel.INACTIVE },
   { value: "SUSPENDED", label: vehicleStatusLabel.SUSPENDED },
 ];
+
+export const listingStatusLabel: Record<string, string> = {
+  DRAFT: "Bản nháp",
+  PUBLISHED: "Đã đăng",
+  PAUSED: "Tạm dừng",
+  REJECTED: "Bị từ chối",
+};
+
+export const listingStatusOptions: Array<{ value: string; label: string }> = [
+  { value: "", label: "Tất cả listing" },
+  { value: "DRAFT", label: listingStatusLabel.DRAFT },
+  { value: "PUBLISHED", label: listingStatusLabel.PUBLISHED },
+  { value: "PAUSED", label: listingStatusLabel.PAUSED },
+  { value: "REJECTED", label: listingStatusLabel.REJECTED },
+];
+
+export const fuelTypeOptions: Array<{ value: string; label: string }> = [
+  { value: "", label: "Mọi nhiên liệu" },
+  { value: "GASOLINE", label: "Xăng" },
+  { value: "DIESEL", label: "Dầu" },
+  { value: "ELECTRIC", label: "Điện" },
+  { value: "HYBRID", label: "Hybrid" },
+];
+
+export const transmissionOptions: Array<{ value: string; label: string }> = [
+  { value: "", label: "Mọi hộp số" },
+  { value: "AUTOMATIC", label: "Tự động" },
+  { value: "MANUAL", label: "Số sàn" },
+];
+
+export const vehicleSortOptions: Array<{ value: string; label: string }> = [
+  { value: "CREATED_AT", label: "Ngày tạo" },
+  { value: "UPDATED_AT", label: "Ngày cập nhật" },
+  { value: "BASE_DAILY_RATE", label: "Giá ngày" },
+  { value: "MANUFACTURE_YEAR", label: "Năm SX" },
+  { value: "BOOKING_COUNT", label: "Số booking" },
+];

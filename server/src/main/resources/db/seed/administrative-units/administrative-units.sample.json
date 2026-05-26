@@ -1,0 +1,31 @@
+[
+  {
+    "code": "SAMPLE-P1",
+    "name": "Tỉnh Mẫu",
+    "fullName": "Tỉnh Mẫu (dữ liệu minh họa định dạng)",
+    "level": "PROVINCE",
+    "type": "PROVINCE",
+    "effectiveFrom": "2025-07-01",
+    "status": "ACTIVE"
+  },
+  {
+    "code": "SAMPLE-C1",
+    "name": "Phường Mẫu Một",
+    "fullName": "Phường Mẫu Một",
+    "level": "COMMUNE",
+    "type": "WARD",
+    "parentCode": "SAMPLE-P1",
+    "effectiveFrom": "2025-07-01",
+    "status": "ACTIVE"
+  },
+  {
+    "code": "SAMPLE-C2",
+    "name": "Xã Mẫu Hai",
+    "fullName": "Xã Mẫu Hai",
+    "level": "COMMUNE",
+    "type": "COMMUNE",
+    "parentCode": "SAMPLE-P1",
+    "effectiveFrom": "2025-07-01",
+    "status": "ACTIVE"
+  }
+]
