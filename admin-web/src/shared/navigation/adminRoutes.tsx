@@ -32,6 +32,16 @@ export const adminRoutes: AdminRoute[] = [
     ),
   },
   {
+    path: "/customers",
+    activePage: "customers",
+    title: "Customers",
+    subtitle: "Quản lý khách hàng",
+    Page: lazyNamedPage(
+        () => import("../../features/customers/pages/CustomerListPage"),
+        "CustomerListPage",
+    ),
+  },
+  {
     path: "/drivers",
     activePage: "drivers",
     title: "Drivers",
