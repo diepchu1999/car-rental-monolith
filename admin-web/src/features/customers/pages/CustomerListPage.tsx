@@ -1,7 +1,8 @@
 import { useState } from "react";
 import {CustomerStats} from "../components/CustomerStats";
-
-type CustomerRole = "renter" | "host" | "both";
+import "./customers.css";
+import {CustomerStatType} from "../types";
+type CustomerRole = CustomerStatType;
 type CustomerFilter = "all" | CustomerRole;
 type CustomerStatus = "active" | "blocked";
 type ToastType = "success" | "error" | "warning";
@@ -37,7 +38,7 @@ const customers: Customer[] = [
         init: "ML",
         col: "var(--success)",
         phone: "0912345678",
-        role: "both",
+        role: "renter",
         bookings: 8,
         revenue: 62100000,
         rating: 4.9,
@@ -97,7 +98,7 @@ const customers: Customer[] = [
         init: "BH",
         col: "var(--success)",
         phone: "0967890123",
-        role: "host",
+        role: "both",
         bookings: 0,
         revenue: 31500000,
         rating: 4.6,
