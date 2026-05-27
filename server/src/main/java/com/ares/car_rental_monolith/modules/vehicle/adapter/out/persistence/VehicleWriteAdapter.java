@@ -1,5 +1,13 @@
 package com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence;
 
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleFeatureJpaEntity;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleImageJpaEntity;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleJpaEntity;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleListingJpaEntity;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleFeatureJpaRepository;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleImageJpaRepository;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleJpaRepository;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleListingJpaRepository;
 import com.ares.car_rental_monolith.modules.vehicle.application.command.SyncVehicleFeaturesCommand;
 import com.ares.car_rental_monolith.modules.vehicle.application.command.SyncVehicleImagesCommand;
 import com.ares.car_rental_monolith.modules.vehicle.application.command.UpdateListingCommand;

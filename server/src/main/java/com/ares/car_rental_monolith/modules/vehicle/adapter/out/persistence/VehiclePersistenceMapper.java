@@ -1,5 +1,6 @@
 package com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence;
 
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleJpaEntity;
 import com.ares.car_rental_monolith.modules.vehicle.domain.Vehicle;
 
 final class VehiclePersistenceMapper {

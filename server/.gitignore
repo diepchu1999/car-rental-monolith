@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# File ảnh / tài liệu do app sinh ra lúc dev/test (vehicle images, KYC documents).
+# Spring tự tạo lại folder lúc startup nên không cần track.
+uploads/
+
 ### STS ###
 .apt_generated
 .classpath

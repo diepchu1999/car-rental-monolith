@@ -1,5 +1,8 @@
 package com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence;
 
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.entity.VehicleJpaEntity;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleJpaRepository;
+import com.ares.car_rental_monolith.modules.vehicle.adapter.out.persistence.repository.VehicleJpaSpecifications;
 import com.ares.car_rental_monolith.modules.vehicle.application.port.out.LoadVehiclePort;
 import com.ares.car_rental_monolith.modules.vehicle.application.query.ListVehiclesQuery;
 import com.ares.car_rental_monolith.modules.vehicle.application.query.PageVehiclesQuery;
