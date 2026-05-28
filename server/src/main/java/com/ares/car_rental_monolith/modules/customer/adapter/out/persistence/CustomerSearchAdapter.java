@@ -2,7 +2,7 @@ package com.ares.car_rental_monolith.modules.customer.adapter.out.persistence;
 
 import com.ares.car_rental_monolith.modules.customer.application.port.out.SearchCustomersPort;
 import com.ares.car_rental_monolith.modules.customer.application.query.SearchCustomersQuery;
-import com.ares.car_rental_monolith.modules.customer.domain.CustomerSummary;
+import com.ares.car_rental_monolith.modules.customer.application.view.CustomerSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;

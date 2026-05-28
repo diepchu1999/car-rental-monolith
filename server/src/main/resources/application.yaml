@@ -55,6 +55,10 @@ spring:
 app:
   media:
     vehicle-images-dir: ${MEDIA_VEHICLE_IMAGES_DIR:./uploads/vehicle-images}
+    kyc-documents-dir: ${MEDIA_KYC_DOCUMENTS_DIR:./uploads/kyc-documents}
+    # Prefix tuyệt đối gắn vào fileUrl của document KYC. Để FE Vite (origin khác)
+    # render <img> trực tiếp về BE. Đổi sang chuỗi rỗng khi cùng origin (prod).
+    public-base-url: ${MEDIA_PUBLIC_BASE_URL:http://localhost:8080}
 
 logging:
   level:
