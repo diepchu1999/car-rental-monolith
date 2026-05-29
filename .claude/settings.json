@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "changes=$(git status --porcelain 2>/dev/null); if [ -n \"$changes\" ] && ! printf '%s' \"$changes\" | grep -q 'SESSION_NOTES.md'; then printf '%s' '{\"systemMessage\":\"📝 Có thay đổi chưa commit và SESSION_NOTES.md chưa được cập nhật — nhớ cập nhật server/docs/SESSION_NOTES.md trước khi kết thúc session để mang context sang máy khác.\"}'; fi",
+            "statusMessage": "Checking SESSION_NOTES freshness..."
+          }
+        ]
+      }
+    ]
+  }
+}

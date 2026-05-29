@@ -113,6 +113,12 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- Chỉ tác động khi chạy local qua `mvn spring-boot:run`. Bản jar
+					     đóng gói (mvn package) KHÔNG dùng goal này nên prod không bị bật
+					     profile dev → pattern %F:%L nặng chỉ tồn tại ở dev. -->
+					<profiles>
+						<profile>dev</profile>
+					</profiles>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

@@ -89,6 +89,18 @@ input,
 select,
 textarea {
   font-family: var(--font-body);
+  /* Toàn admin theme tối: ép native control (date picker, select popup,
+     scrollbar) render dark-scheme để khỏi lộ nền trắng khi form không dùng
+     class .form-input/.form-select. */
+  color-scheme: dark;
+}
+select option {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+select option:checked {
+  background: #263241;
+  color: #ffffff;
 }
 img {
   max-width: 100%;

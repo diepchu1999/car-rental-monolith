@@ -1,0 +1,12 @@
+# Dev-only overrides. KHÔNG áp dụng cho prod: profile "dev" chỉ được bật khi chạy
+# local qua `./mvnw spring-boot:run` (cấu hình ở spring-boot-maven-plugin trong pom).
+# Bản jar prod (java -jar) không kích hoạt profile này nên pattern nặng %F:%L không dính.
+logging:
+  # (%F:%L) = (TênFile.java:dòng) — IntelliJ/Eclipse tự biến thành hyperlink, click là
+  # nhảy thẳng vào class đúng dòng. Lưu ý: %F và %L là "caller data", logback phải dựng
+  # stack trace mỗi dòng log → tốn hiệu năng, vì vậy chỉ để ở dev.
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level %logger{0} - %msg (%F:%L)%n"
+  level:
+    # Mở DEBUG cho code của mình để log.debug(...) hiện ra (root mặc định là INFO).
+    com.ares.car_rental_monolith: DEBUG
