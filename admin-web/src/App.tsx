@@ -11,6 +11,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to={defaultAdminRoutePath} replace />} />
+      {/* Fleet là khu vực có sub-nav; /fleet mặc định vào tab Chi nhánh. */}
+      <Route path="/fleet" element={<Navigate to="/fleet/branches" replace />} />
       {adminRoutes.map((route) => (
         <Route
           key={route.path}

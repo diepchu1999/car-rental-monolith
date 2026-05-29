@@ -11,12 +11,20 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 
+export type AdminNavSubItem = {
+  id: string;
+  label: string;
+  href: string;
+};
+
 export type AdminNavItem = {
   id: string;
   label: string;
   href: string;
   badge?: string;
   icon: ComponentType<{ className?: string; size?: number }>;
+  // Sub-nav lồng trong sidebar (chỉ hiện khi item đang active). Dùng cho Fleet.
+  children?: AdminNavSubItem[];
 };
 
 export type AdminNavGroup = {
@@ -46,7 +54,16 @@ export const adminNavGroups: AdminNavGroup[] = [
   {
     group: "Management",
     items: [
-      { id: "fleet", label: "Fleet", href: "/fleet", icon: Warehouse },
+      {
+        id: "fleet",
+        label: "Fleet",
+        href: "/fleet",
+        icon: Warehouse,
+        children: [
+          { id: "fleet-branches", label: "Chi nhánh", href: "/fleet/branches" },
+          { id: "fleet-vehicles", label: "Xe công ty", href: "/fleet/vehicles" },
+        ],
+      },
       { id: "payments", label: "Payments", href: "/payments", icon: CreditCard },
       { id: "reviews", label: "Reviews", href: "/reviews", icon: Star },
     ],

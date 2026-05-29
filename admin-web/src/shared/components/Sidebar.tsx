@@ -1,5 +1,6 @@
-import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { ChevronDown, Menu } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
 import {
   adminNavGroups,
   type AdminNavGroup,
@@ -120,6 +121,49 @@ type NavigationItemProps = {
 
 function NavigationItem({ active, item, onNavigate }: NavigationItemProps) {
   const Icon = item.icon;
+  const hasChildren = !!item.children?.length;
+  // Mở sẵn khi đang ở trong section (vào thẳng bằng URL hoặc sau khi chọn mục
+  // con). Ngoài ra việc đóng/mở do user bấm vào nút Fleet điều khiển.
+  const [expanded, setExpanded] = useState(active);
+
+  // Item có sub-nav: nút Fleet CHỈ đóng/mở, không điều hướng, không chọn mục
+  // con mặc định. User tự bấm "Chi nhánh" / "Xe công ty".
+  if (hasChildren) {
+    return (
+      <>
+        <button
+          type="button"
+          className={`nav-item nav-item-toggle ${active ? "active" : ""}`}
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <Icon className="nav-icon" size={20} />
+          <span className="nav-text">{item.label}</span>
+          <ChevronDown
+            className={`nav-chevron ${expanded ? "open" : ""}`}
+            size={14}
+          />
+        </button>
+
+        {expanded ? (
+          <div className="nav-subnav">
+            {item.children!.map((child) => (
+              <NavLink
+                key={child.id}
+                to={child.href}
+                className={({ isActive }) =>
+                  `nav-subitem ${isActive ? "active" : ""}`
+                }
+                onClick={onNavigate}
+              >
+                {child.label}
+              </NavLink>
+            ))}
+          </div>
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <Link

@@ -1,0 +1,275 @@
+/* === FLEET — Chi nhánh === */
+/* Tự chứa: chỉ thêm layout/table/modal riêng cho Fleet. Các class nền tảng
+   (.card .btn .form-input .modal .tabs .page-btn .empty-state ...) dùng từ
+   styles.css toàn cục. */
+
+/* Filter bar */
+.branch-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+}
+
+.branch-search-box {
+  width: 280px;
+  max-width: 100%;
+}
+
+/* width cố định để override .form-select { width: 100% } toàn cục, tránh
+   các filter bị giãn full-width xếp chồng dọc. */
+.branch-filter-select {
+  width: 180px;
+}
+
+/* Table */
+.branch-table-card {
+  position: relative;
+}
+
+.branch-table-loading {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.branch-table {
+  width: 100%;
+}
+
+.branch-code {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xs);
+  padding: 2px 8px;
+}
+
+.branch-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branch-address {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.branch-col-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.branch-row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Status badge */
+.branch-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.branch-badge-active {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--success) 36%, transparent);
+}
+
+.branch-badge-inactive {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+}
+
+/* List states */
+.branch-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+.branch-state-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branch-state-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Pagination */
+.branch-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.branch-pagination-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.branch-pagination-page {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.branch-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.branch-page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.branch-page-size-select {
+  width: auto;
+  min-width: 72px;
+}
+
+.branch-page-ellipsis {
+  padding: 0 4px;
+  color: var(--text-muted);
+}
+
+/* Form modal */
+.branch-form-modal {
+  max-width: 600px;
+}
+
+.branch-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.branch-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.branch-form-field-full {
+  grid-column: 1 / -1;
+}
+
+.branch-form-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.branch-form-field-error {
+  font-size: 11px;
+  color: var(--danger);
+}
+
+/* Detail modal */
+.branch-detail-modal {
+  max-width: 520px;
+}
+
+.branch-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.branch-detail-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branch-detail-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 6px;
+}
+
+.branch-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.branch-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.branch-detail-field-full {
+  grid-column: 1 / -1;
+}
+
+.branch-detail-field label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.branch-detail-field span {
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.branch-detail-muted {
+  color: var(--text-muted) !important;
+}
+
+.branch-detail-state {
+  text-align: center;
+  padding: 28px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .branch-form-grid,
+  .branch-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .branch-row-actions {
+    flex-wrap: wrap;
+  }
+  .branch-search-box,
+  .branch-filter-select {
+    width: 100%;
+  }
+}

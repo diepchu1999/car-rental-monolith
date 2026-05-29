@@ -425,8 +425,188 @@
   font-size: 12px;
 }
 
+/* === HOST LOOKUP (chủ xe) === */
+.host-field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.host-field-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.host-lookup-trigger {
+  flex-shrink: 0;
+}
+
+.host-lookup-modal {
+  max-width: 860px;
+}
+
+.host-lookup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.host-lookup-table {
+  width: 100%;
+}
+
+.host-lookup-col-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.host-lookup-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.host-lookup-id {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.host-lookup-code {
+  font-family: var(--font-mono, monospace);
+  color: var(--accent);
+}
+
+.host-lookup-contact {
+  display: flex;
+  flex-direction: column;
+}
+
+.host-lookup-muted {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.host-lookup-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.host-lookup-state {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.host-lookup-footer {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.host-lookup-total,
+.host-lookup-page {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.host-lookup-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Host detail (read-only) */
+.host-detail-modal {
+  max-width: 560px;
+}
+
+.host-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.host-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.host-detail-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.host-detail-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.host-detail-contact {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.host-detail-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.host-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.host-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.host-detail-field label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.host-detail-field span {
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.host-detail-muted {
+  color: var(--text-muted) !important;
+}
+
+.host-detail-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.host-detail-state {
+  text-align: center;
+  padding: 28px;
+  color: var(--text-muted);
+}
+
 @media (max-width: 600px) {
   .vehicle-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .host-detail-grid {
     grid-template-columns: 1fr;
   }
 }

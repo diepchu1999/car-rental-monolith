@@ -51,4 +51,25 @@ export const adminRoutes: AdminRoute[] = [
       "DriverListPage",
     ),
   },
+  {
+    // Fleet là sub-nav: nav chính "Fleet" trỏ /fleet rồi redirect sang đây.
+    path: "/fleet/branches",
+    activePage: "fleet",
+    title: "Fleet",
+    subtitle: "Quản lý chi nhánh",
+    Page: lazyNamedPage(
+      () => import("../../features/fleet/pages/FleetBranchesPage"),
+      "FleetBranchesPage",
+    ),
+  },
+  {
+    path: "/fleet/vehicles",
+    activePage: "fleet",
+    title: "Fleet",
+    subtitle: "Xe công ty",
+    Page: lazyNamedPage(
+      () => import("../../features/fleet/pages/FleetVehiclesPage"),
+      "FleetVehiclesPage",
+    ),
+  },
 ];

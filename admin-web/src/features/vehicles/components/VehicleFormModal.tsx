@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { List, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createVehicle } from "../api/vehicleAPI";
 import { CustomerPicker } from "./CustomerPicker";
+import { HostLookupModal } from "./HostLookupModal";
 import { listActiveBranches } from "../../fleet/api/fleetAPI";
 import {
   fuelTypeOptions,
@@ -53,6 +54,7 @@ export function VehicleFormModal({
 }: VehicleFormModalProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [owner, setOwner] = useState<CustomerSummary | null>(null);
+  const [lookupOpen, setLookupOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -137,6 +139,7 @@ export function VehicleFormModal({
   }
 
   return (
+    <>
     <div className="modal-overlay active" onClick={handleClose}>
       <div
         className="modal vehicle-form-modal"
@@ -185,7 +188,19 @@ export function VehicleFormModal({
           {form.source === "HOST_OWNED" ? (
             <div className="vehicle-form-section">
               <label className="vehicle-form-label">Chủ xe (host) *</label>
-              <CustomerPicker value={owner} onChange={setOwner} hostOnly />
+              <div className="host-field-row">
+                <div className="host-field-picker">
+                  <CustomerPicker value={owner} onChange={setOwner} hostOnly />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-icon host-lookup-trigger"
+                  onClick={() => setLookupOpen(true)}
+                  title="Mở danh sách host"
+                >
+                  <List size={16} />
+                </button>
+              </div>
             </div>
           ) : (
             <div className="vehicle-form-section">
@@ -284,6 +299,16 @@ export function VehicleFormModal({
         </form>
       </div>
     </div>
+
+    <HostLookupModal
+      open={lookupOpen}
+      onClose={() => setLookupOpen(false)}
+      onSelect={(host) => {
+        setOwner(host);
+        setLookupOpen(false);
+      }}
+    />
+    </>
   );
 }
 
