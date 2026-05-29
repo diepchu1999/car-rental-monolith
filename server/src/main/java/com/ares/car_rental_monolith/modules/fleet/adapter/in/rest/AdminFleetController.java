@@ -1,15 +1,20 @@
 package com.ares.car_rental_monolith.modules.fleet.adapter.in.rest;
 
+import com.ares.car_rental_monolith.modules.fleet.adapter.in.rest.response.AdminFleetBranchDetailResponse;
 import com.ares.car_rental_monolith.modules.fleet.application.port.in.ListBranchesUseCase;
+import com.ares.car_rental_monolith.modules.fleet.application.port.in.ListFleetBranchesUseCase;
 import com.ares.car_rental_monolith.modules.fleet.application.port.in.SearchFleetVehiclesUseCase;
+import com.ares.car_rental_monolith.modules.fleet.application.query.ListFleetBranchesQuery;
 import com.ares.car_rental_monolith.modules.fleet.application.query.SearchFleetVehiclesQuery;
 import com.ares.car_rental_monolith.modules.fleet.domain.BranchSummary;
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetVehicleSummary;
 import com.ares.car_rental_monolith.shared.api.ApiResponse;
 import com.ares.car_rental_monolith.shared.api.ListResponse;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,13 +27,16 @@ public class AdminFleetController {
 
     private final SearchFleetVehiclesUseCase searchFleetVehicles;
     private final ListBranchesUseCase listBranches;
+    private final ListFleetBranchesUseCase listFleetBranches;
 
     public AdminFleetController(
             SearchFleetVehiclesUseCase searchFleetVehicles,
-            ListBranchesUseCase listBranches
+            ListBranchesUseCase listBranches,
+            ListFleetBranchesUseCase listFleetBranches
     ) {
         this.searchFleetVehicles = searchFleetVehicles;
         this.listBranches = listBranches;
+        this.listFleetBranches = listFleetBranches;
     }
 
     @GetMapping("/vehicles/search")
@@ -49,5 +57,22 @@ public class AdminFleetController {
         List<BranchSummary> branches = listBranches.handle();
         return ResponseEntity.ok(ApiResponse.success(
                 "BRANCHES_LISTED", "Branches listed", ListResponse.of(branches)));
+    }
+
+
+    @GetMapping("/branches/paged")
+    public ResponseEntity<ApiResponse<PageResponse<AdminFleetBranchDetailResponse>>> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size
+
+    ) {
+        PageResponse<AdminFleetBranchDetailResponse> result = listFleetBranches.handle(
+                ListFleetBranchesQuery.from(q, status, page, size)
+
+        ).map(AdminFleetBranchDetailResponse::fromDomain);
+        return ResponseEntity.ok(ApiResponse.success(
+                "FLEET_BRANCH_LISTED", "Branch Fleet listed", result));
     }
 }
