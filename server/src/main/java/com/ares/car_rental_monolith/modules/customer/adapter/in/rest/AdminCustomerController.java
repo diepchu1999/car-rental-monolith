@@ -67,10 +67,13 @@ public class AdminCustomerController {
     public ResponseEntity<ApiResponse<PageResponse<CustomerSummaryResponse>>> search(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size
+            @RequestParam(defaultValue = "20") Integer size,
+            // hostOnly=true: chỉ trả active host (vehicle owner picker dùng). Mặc định
+            // false để search chung vẫn trả cả renter lẫn host.
+            @RequestParam(required = false) Boolean hostOnly
     ) {
         PageResponse<CustomerSummaryResponse> result = searchCustomers
-                .handle(SearchCustomersQuery.from(q, page, size))
+                .handle(SearchCustomersQuery.from(q, page, size, hostOnly))
                 .map(CustomerSummaryResponse::fromDomain);
         return ResponseEntity.ok(ApiResponse.success(
                 "CUSTOMERS_SEARCHED", "Customers searched", result));

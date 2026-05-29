@@ -79,9 +79,12 @@ class VehicleCommandService
         UUID fleetVehicleId = null;
         switch (command.source()) {
             case HOST_OWNED -> {
-                if (!customerDirectory.isActiveCustomer(command.ownerCustomerId())) {
+                // Phải là active HOST, không chỉ active customer: renter thuần không
+                // được sở hữu xe. Chốt ở đây vì là ràng buộc cross-aggregate (vehicle
+                // không biết về host) — đi qua public port của customer module.
+                if (!customerDirectory.isActiveHost(command.ownerCustomerId())) {
                     throw DomainException.validation(
-                            "ownerCustomerId does not exist or is not active");
+                            "ownerCustomerId must reference an active host");
                 }
             }
             case COMPANY_OWNED ->

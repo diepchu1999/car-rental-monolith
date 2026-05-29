@@ -185,7 +185,7 @@ export function VehicleFormModal({
           {form.source === "HOST_OWNED" ? (
             <div className="vehicle-form-section">
               <label className="vehicle-form-label">Chủ xe (host) *</label>
-              <CustomerPicker value={owner} onChange={setOwner} />
+              <CustomerPicker value={owner} onChange={setOwner} hostOnly />
             </div>
           ) : (
             <div className="vehicle-form-section">

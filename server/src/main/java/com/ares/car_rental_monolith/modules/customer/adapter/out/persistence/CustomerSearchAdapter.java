@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 
 // Search by free-text q against name/phone/email/hostCode. ILIKE allows the
 // pg_trgm extension to back this with a GIN index (see V031). The hostCode
-// match resolves to the host_profiles table; results combine both roles.
+// match resolves to the host_profiles table. Mặc định trả cả renter lẫn host;
+// khi hostOnly=true thì chỉ trả active host (dùng cho vehicle owner picker, nơi
+// chủ xe HOST_OWNED bắt buộc là host).
 @Component
 class CustomerSearchAdapter implements SearchCustomersPort {
 
@@ -22,6 +24,7 @@ class CustomerSearchAdapter implements SearchCustomersPort {
                 OR COALESCE(c.phone, '') ILIKE CONCAT('%', :q, '%')
                 OR COALESCE(c.email, '') ILIKE CONCAT('%', :q, '%')
                 OR COALESCE(hp.host_code, '') ILIKE CONCAT('%', :q, '%'))
+            AND (:hostOnly = FALSE OR hp.status = 'ACTIVE')
             """;
 
     private static final String DATA_SQL = """
@@ -53,10 +56,12 @@ class CustomerSearchAdapter implements SearchCustomersPort {
 
         long total = ((Number) em.createNativeQuery(COUNT_SQL)
                 .setParameter("q", query.q())
+                .setParameter("hostOnly", query.hostOnly())
                 .getSingleResult()).longValue();
 
         List<Tuple> rows = em.createNativeQuery(DATA_SQL, Tuple.class)
                 .setParameter("q", query.q())
+                .setParameter("hostOnly", query.hostOnly())
                 .setParameter("lim", size)
                 .setParameter("off", offset)
                 .getResultList();

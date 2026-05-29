@@ -21,4 +21,10 @@ class CustomerDirectoryService implements CustomerDirectory {
         if (customerId == null) return false;
         return port.isActiveCustomer(customerId);
     }
+
+    @Override
+    public boolean isActiveHost(UUID customerId) {
+        if (customerId == null) return false;
+        return port.isActiveHost(customerId);
+    }
 }

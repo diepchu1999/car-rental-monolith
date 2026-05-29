@@ -20,10 +20,13 @@ export type CustomerSummary = {
 };
 
 // Search nhẹ (vehicle owner picker). Khác list ở chỗ trả CustomerSummary.
+// hostOnly=true: chỉ trả active host — dùng khi chọn chủ xe HOST_OWNED (renter
+// thuần không được sở hữu xe, BE cũng chốt lại ở VehicleCommandService).
 export async function searchCustomers(params: {
   q?: string;
   page?: number;
   size?: number;
+  hostOnly?: boolean;
 }) {
   const response = await httpClient.get<ApiResponse<PageResponse<CustomerSummary>>>(
     "/admin/customers/search",
@@ -32,6 +35,7 @@ export async function searchCustomers(params: {
         q: params.q || undefined,
         page: params.page ?? 1,
         size: params.size ?? 20,
+        hostOnly: params.hostOnly || undefined,
       },
     },
   );

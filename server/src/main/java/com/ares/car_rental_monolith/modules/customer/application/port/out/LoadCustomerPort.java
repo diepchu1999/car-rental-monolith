@@ -8,6 +8,10 @@ import java.util.UUID;
 public interface LoadCustomerPort {
     boolean isActiveCustomer(UUID customerId);
 
+    // ACTIVE host = customer ACTIVE + có host_profiles status ACTIVE. Tách khỏi
+    // isActiveCustomer vì ràng buộc sở hữu xe yêu cầu vai trò host, không chỉ active.
+    boolean isActiveHost(UUID customerId);
+
     // Tồn tại bất kể status (ACTIVE/PENDING_KYC/SUSPENDED...). Dùng cho luồng
     // tạo KYC: customer mới đăng ký có thể chưa ACTIVE nhưng vẫn cần được nộp KYC.
     boolean existsCustomer(UUID customerId);

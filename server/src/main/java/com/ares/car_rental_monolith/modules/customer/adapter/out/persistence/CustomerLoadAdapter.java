@@ -116,6 +116,19 @@ class CustomerLoadAdapter implements LoadCustomerPort {
     }
 
     @Override
+    public boolean isActiveHost(UUID customerId) {
+        Number count = (Number) em.createNativeQuery("""
+                SELECT COUNT(*)
+                FROM customer.customers c
+                JOIN customer.host_profiles hp ON hp.customer_id = c.id
+                WHERE c.id = :id AND c.status = 'ACTIVE' AND hp.status = 'ACTIVE'
+                """)
+                .setParameter("id", customerId)
+                .getSingleResult();
+        return count.longValue() > 0;
+    }
+
+    @Override
     public boolean existsCustomer(UUID customerId) {
         Number count = (Number) em.createNativeQuery(
                 "SELECT COUNT(*) FROM customer.customers WHERE id = :id")

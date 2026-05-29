@@ -10,6 +10,9 @@ type CustomerPickerProps = {
   value: CustomerSummary | null;
   onChange: (customer: CustomerSummary | null) => void;
   disabled?: boolean;
+  // Chỉ hiện active host (chủ xe HOST_OWNED bắt buộc là host). Mặc định false để
+  // component vẫn tái dùng cho ngữ cảnh chọn customer chung nếu cần sau này.
+  hostOnly?: boolean;
 };
 
 // Debounced search dropdown. Closes on outside click. Limited to 10 results
@@ -18,6 +21,7 @@ export function CustomerPicker({
   value,
   onChange,
   disabled = false,
+  hostOnly = false,
 }: CustomerPickerProps) {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -39,8 +43,8 @@ export function CustomerPicker({
   }, [open]);
 
   const searchQuery = useQuery({
-    queryKey: ["customers", "search", debounced],
-    queryFn: () => searchCustomers({ q: debounced, size: 10 }),
+    queryKey: ["customers", "search", debounced, hostOnly],
+    queryFn: () => searchCustomers({ q: debounced, size: 10, hostOnly }),
     enabled: open && debounced.length >= 1,
   });
 
