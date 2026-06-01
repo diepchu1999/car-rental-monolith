@@ -2,10 +2,11 @@ package com.ares.car_rental_monolith.modules.fleet.adapter.in.rest.response;
 
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetBranchDetail;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record AdminFleetBranchDetailResponse(
-        UUID uuid,
+        UUID id,
         String code,
         String name,
         String address,
@@ -13,7 +14,9 @@ public record AdminFleetBranchDetailResponse(
         String phone,
         String status,
         String provinceCode,
-        String communeCode
+        String communeCode,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
 
     public static AdminFleetBranchDetailResponse fromDomain(FleetBranchDetail c) {
@@ -26,7 +29,9 @@ public record AdminFleetBranchDetailResponse(
                 c.phone(),
                 c.status().toString(),
                 c.provinceCode(),
-                c.communeCode()
+                c.communeCode(),
+                c.createdAt(),
+                c.updatedAt()
         );
     }
 }

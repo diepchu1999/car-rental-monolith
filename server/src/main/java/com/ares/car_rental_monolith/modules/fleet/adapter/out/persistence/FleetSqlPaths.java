@@ -18,4 +18,5 @@ final class FleetSqlPaths {
     static final String ASSET_CODE_EXISTS = BASE + "asset_code_exists.sql";
     static final String BRANCH_EXISTS = BASE + "branch_exists.sql";
     static final String INSERT_COMPANY_VEHICLE = BASE + "insert_company_vehicle.sql";
+    static final String LOAD_FLEET_BRANCH = BASE + "load_fleet_branch.sql";
 }

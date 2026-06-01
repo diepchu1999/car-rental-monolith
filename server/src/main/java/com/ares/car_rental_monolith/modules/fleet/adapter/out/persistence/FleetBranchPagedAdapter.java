@@ -57,10 +57,10 @@ class FleetBranchPagedAdapter implements LoadFleetBranchPort {
                 t.get("city", String.class),
                 t.get("phone", String.class),
                 FleetBranchStatus.valueOf(t.get("status", String.class)),
-                // fleet.branches chưa lưu mã tỉnh/phường (xem V040__fleet.sql) — để null
-                // tới khi bổ sung cột province_code/commune_code nếu cần.
-                null,
-                null
+                t.get("province_code", String.class),
+                t.get("commune_code", String.class),
+                Tuples.dateTime(t, "created_at"),
+                Tuples.dateTime(t, "updated_at")
         );
     }
 }

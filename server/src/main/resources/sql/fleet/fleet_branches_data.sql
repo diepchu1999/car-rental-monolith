@@ -1,4 +1,5 @@
-SELECT br.id, br.code, br.name, br.address, br.city, br.phone, br.status
+SELECT br.id, br.code, br.name, br.address, br.city, br.phone, br.status,
+       br.province_code, br.commune_code, br.created_at, br.updated_at
 FROM fleet.branches br
 WHERE (:q = ''
     OR br.code ILIKE CONCAT('%', :q, '%')

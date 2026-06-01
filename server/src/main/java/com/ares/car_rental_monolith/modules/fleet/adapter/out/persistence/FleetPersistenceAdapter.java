@@ -3,14 +3,20 @@ package com.ares.car_rental_monolith.modules.fleet.adapter.out.persistence;
 import com.ares.car_rental_monolith.modules.fleet.application.port.out.LoadFleetPort;
 import com.ares.car_rental_monolith.modules.fleet.application.query.SearchFleetVehiclesQuery;
 import com.ares.car_rental_monolith.modules.fleet.domain.BranchSummary;
+import com.ares.car_rental_monolith.modules.fleet.domain.FleetBranchDetail;
+import com.ares.car_rental_monolith.modules.fleet.domain.FleetBranchStatus;
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetVehicleSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
 import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.Tuple;
-import java.util.List;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 class FleetPersistenceAdapter implements LoadFleetPort {
@@ -51,6 +57,32 @@ class FleetPersistenceAdapter implements LoadFleetPort {
         List<Tuple> rows = em.createNativeQuery(sql.load(FleetSqlPaths.LIST_ACTIVE_BRANCHES), Tuple.class)
                 .getResultList();
         return rows.stream().map(FleetPersistenceAdapter::toBranch).toList();
+    }
+
+    @Override
+    public Optional<FleetBranchDetail> getBranch(UUID branchId) {
+        Tuple c;
+        try {
+            c = (Tuple) em.createNativeQuery(sql.load(FleetSqlPaths.LOAD_FLEET_BRANCH), Tuple.class)
+                    .setParameter("id", branchId)
+                    .getSingleResult();
+        } catch (NoResultException ignored) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new FleetBranchDetail(
+                Tuples.uuid(c, "id"),
+                c.get("code", String.class),
+                c.get("name", String.class),
+                c.get("address", String.class),
+                c.get("city", String.class),
+                c.get("phone", String.class),
+                FleetBranchStatus.valueOf(c.get("status", String.class)),
+                c.get("province_code", String.class),
+                c.get("commune_code", String.class),
+                Tuples.dateTime(c, "created_at"),
+                Tuples.dateTime(c, "updated_at")
+        ));
     }
 
     private static FleetVehicleSummary toVehicle(Tuple t) {

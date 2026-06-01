@@ -1,5 +1,6 @@
 package com.ares.car_rental_monolith.modules.fleet.domain;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record FleetBranchDetail(UUID id,
@@ -10,5 +11,7 @@ public record FleetBranchDetail(UUID id,
                                 String phone,
                                 FleetBranchStatus status,
                                 String provinceCode,
-                                String communeCode) {
+                                String communeCode,
+                                OffsetDateTime createdAt,
+                                OffsetDateTime updatedAt) {
 }

@@ -6,71 +6,59 @@
 
 ---
 
-## Cập nhật mới nhất: 2026-05-29
+## Cập nhật mới nhất: 2026-06-01
 
-Tất cả thay đổi dưới đây **chưa commit** (working tree). Gồm 5 mảng.
+### ĐÃ COMMIT (branch CAR-04, tới commit "Update pattern")
 
-### 1. SQL caller logging — ✅ XONG & ĐÃ VERIFY
-- `RepositoryLoggingAspect.java`: pointcut `execution(* ...modules..adapter.out.persistence..*(..))`
-  tag SQL theo `Class#method` (vd `CustomerSearchAdapter#search`). Có `@EnableAspectJAutoProxy`
-  (Spring Boot 4 BOM không quản version `spring-boot-starter-aop`).
-- `RepositoryQueryContext.java`: **đổi sang lưu qua SLF4J `MDC`** thay vì ThreadLocal static.
-  Lý do: spring-boot-devtools chạy 2 classloader → aspect (restart loader) set 1 bản, p6spy
-  formatter (base loader) đọc bản khác → luôn null. MDC nằm ở slf4j-api (base loader) nên
-  dùng chung. **Đã verify log ra đúng caller tag.**
+1. **Mã định danh từ DB sequence** — bỏ `UUID.randomUUID().substring(0,8)` (rủi ro
+   trùng theo birthday paradox + UNIQUE constraint).
+   - `host_code`: `V124__host_code_sequence.sql` + `WriteCustomerPort.nextHostCode()`
+     → `HOST-%06d`.
+   - `kyc_code`: `V125__kyc_code_sequence.sql` + `nextKycCode()` → `KYC-%06d`
+     (sửa cả `CustomerCommandService`, `KycCommandService`, fallback `insertKyc`).
+   - ⚠️ Cần restart để Flyway apply V124/V125 trước khi tạo host/kyc mới.
 
-### 2. Dev logging click-được (`%F:%L`) — prod không dính
-- `application-dev.yaml` (mới): `logging.pattern.console` có `(%F:%L)` → IntelliJ click vào
-  log nhảy tới class+dòng; + `logging.level.com.ares...=DEBUG`.
-- `pom.xml`: spring-boot-maven-plugin bật profile `dev` khi `spring-boot:run`. Prod (`java -jar`)
-  không qua goal này nên không dính pattern nặng.
-- ⚠️ Nếu chạy bằng **IntelliJ run config** (không qua maven): phải tự set Active profiles=`dev`
-  hoặc env `SPRING_PROFILES_ACTIVE=dev`.
+2. **SqlLoader — quản lý Native SQL bằng file `.sql`** (`shared/sql/SqlLoader` +
+   `ClasspathSqlQueryLoader`, cache bean-instance). SQL ở `resources/sql/<module>/*.sql`,
+   mỗi module có class `<Module>SqlPaths` (package-private). Đã rollout **toàn bộ**
+   12 adapter / 5 module (customer, fleet, vehicle, location, driver), 58 file `.sql`.
+   SQL động (CustomerPageAdapter / VehicleEnrichedListQuery) externalize khối tĩnh,
+   giữ phần ráp WHERE/ORDER BY ở Java.
 
-### 3. Dark theme native control — `admin-web/src/assets/styles.css`
-- `color-scheme: dark` cho `input, select, textarea` + theme `select option` → mọi dropdown/date
-  picker toàn admin render nền tối.
+3. **Chuẩn hóa pattern dùng chung** (`shared/`):
+   - `persistence/Tuples` — gộp helper map Tuple (uuid/dateTime/localDate/intValue/
+     longValue/bigDecimal), bản superset; thay ~9 adapter.
+   - `api/PageResponse.ofPageIndex(items,total,pageIndex,size)` — gom phép tính phân
+     trang; thay 6 adapter. Convention rỗng → totalPages=1.
+   - `api/PageParams.normalize(page,size,defaultSize,maxSize)` — chuẩn hóa input;
+     thay 6 query record (giữ maxSize riêng từng endpoint: 50 vs 100).
+   - Tài liệu: thêm mục 8 "Tiện ích dùng chung" vào `MODULE_ARCHITECTURE.md` + cập nhật
+     template.
 
-### 4. Vehicle host/renter — ✅ XONG & VERIFY (BE compile + FE build)
-Bug: chủ xe HOST_OWNED không bắt buộc là host; picker chọn được cả renter.
-- **BE chốt chặn**: thêm `isActiveHost(UUID)` vào `CustomerDirectory` + `LoadCustomerPort` +
-  `CustomerLoadAdapter` (SQL customers ACTIVE JOIN host_profiles ACTIVE) + `CustomerDirectoryService`.
-  `VehicleCommandService` nhánh HOST_OWNED đổi `isActiveCustomer` → `isActiveHost`.
-- **FE lọc host**: `SearchCustomersQuery` + `CustomerSearchAdapter` thêm `hostOnly`;
-  `AdminCustomerController` thêm `@RequestParam hostOnly`; `customerAPI.ts` + `CustomerPicker.tsx`
-  (prop `hostOnly`) + `VehicleFormModal` truyền hostOnly.
-- **Popup chọn chủ xe**: `HostLookupModal.tsx` (list host + phân trang) + `HostDetailModal.tsx`
-  (**read-only**, CSS tự chứa — KHÔNG tái dùng CustomerDetailModal vì CSS nằm chunk customers.css
-  không load ở trang Vehicle). Nút ≡ lookup trong VehicleFormModal.
-- ⚠️ Dữ liệu cũ: có thể có xe HOST_OWNED owner không phải host (query rà trong lịch sử chat).
+### ĐANG LÀM DỞ — CHƯA COMMIT (Fleet > Chi nhánh: detail endpoint)
 
-### 5. Fleet — Quản lý chi nhánh
-**FE (admin-web) — ✅ build pass:**
-- Sub-nav Fleet nằm ở **sidebar trái** (lồng dưới "Fleet"): `adminNavigation.ts` (children),
-  `Sidebar.tsx` (nút Fleet = toggle CHỈ sổ/thu, không điều hướng, không chọn mặc định), CSS
-  `.nav-subnav`/`.nav-subitem`/`.nav-item-toggle` trong `styles.css`.
-- Route `/fleet/branches` + `/fleet/vehicles` (adminRoutes.tsx), `/fleet` redirect (App.tsx).
-- `features/fleet/`: types.ts, notify.ts, api/fleetAPI.ts (thêm getBranchesPage/getBranchDetail/
-  createBranch/updateBranch/changeBranchStatus), pages/{FleetLayoutPage,FleetBranchesPage,
-  FleetVehiclesPage(placeholder),fleet.css}, components/{BranchFilters,BranchTable,BranchStatusBadge,
-  BranchPagination,BranchFormModal,BranchDetailModal}.
+Mục tiêu: bật xem chi tiết chi nhánh ở FE (đang gọi `GET /admin/fleet/branches/{id}`).
 
-**BE (server) — mới có LIST paged:**
-- `FleetBranchPagedAdapter.java` (đã rename từ FleetBranchPersitenceAdapter) implement
-  `LoadFleetBranchPort.loadFleetBranchesList` → query `fleet.branches`.
-- `AdminFleetController` sửa path `/fleet/branches/paged` → `/branches/paged` (khớp FE).
-- `FleetBranchDetail.provinceCode/communeCode` map **null** (bảng fleet.branches V040 chưa có cột).
+- **Bug đã fix**: `AdminFleetBranchDetailResponse` trước serialize field `uuid` (sai)
+  → FE đọc `branch.id` = undefined → bấm "Chi tiết" gọi `/branches/undefined`.
+  Đã đổi `uuid` → `id` (khớp convention toàn hệ thống).
+- **Thêm `createdAt`/`updatedAt`** vào response (FE modal cần hiển thị "Tạo lúc/Cập nhật"):
+  - `FleetBranchDetail` (domain) thêm 2 field `OffsetDateTime`.
+  - `load_fleet_branch.sql` + `fleet_branches_data.sql` SELECT thêm `created_at`,
+    `updated_at` (và list bổ sung `province_code`/`commune_code` — V121 đã có cột).
+  - `FleetPersistenceAdapter.getBranch` + `FleetBranchPagedAdapter.toBranch` map qua
+    `Tuples.dateTime(...)`.
+- Endpoint detail: `GetFleetBranchUseCase` + `LoadFleetPort.getBranch` +
+  `FleetQueryService` + `AdminFleetController.getByFleetId`.
+- ✅ `mvn compile` pass.
 
-### Việc tiếp theo (CHƯA làm)
-- [ ] **BE Fleet còn thiếu** (FE đã gọi nhưng BE chưa có): `GET /branches/{id}`, `POST /branches`,
-      `PATCH /branches/{id}`, `PATCH /branches/{id}/status`. Cần thêm port + write adapter +
-      service + controller. → Hiện các nút detail/create/update/status ở FE sẽ 404.
-- [ ] Restart server verify màn Chi nhánh list ra data thật.
-- [ ] Commit toàn bộ (gom theo nhóm: sql-logging / dev-logging / dark-css / vehicle-host-fix /
-      fleet-branches-fe / fleet-branches-be).
+### Việc tiếp theo
+- [ ] **Restart server** → verify: (1) màn Chi nhánh mở được detail (id ok),
+      (2) "Tạo lúc/Cập nhật" hiển thị đúng, (3) host/kyc tạo mới ra mã sequence.
+- [ ] **Commit** nhóm Fleet branch-detail đang dở (11 file fleet).
+- [ ] (Tùy chọn) chạy test online (bỏ `-o`) xác nhận không hồi quy — integration test cần Postgres.
+- [ ] Dữ liệu cũ: rà xe HOST_OWNED có owner không phải host (đã bàn trước đó).
 
-### Lưu ý dọn dẹp
-- 2 file artifact transcript ở working tree (KHÔNG commit): `2026-05-29-100705-...txt` (root)
-  và `server/2026-05-29-100705-...txt`. Nên xoá hoặc gitignore.
-- `.claude/settings.json` (mới) có Stop hook nhắc cập nhật file này — cần mở `/hooks` hoặc
-  restart Claude Code 1 lần để hook được nạp.
+### Lưu ý
+- FE **không** cần đổi: `Branch` type đã có sẵn `id`/`createdAt`/`updatedAt`.
+- `.claude/settings.json` Stop hook nhắc cập nhật file này (cần `/hooks` reload 1 lần nếu chưa).
