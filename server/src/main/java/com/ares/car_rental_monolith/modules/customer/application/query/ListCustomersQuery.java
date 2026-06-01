@@ -1,5 +1,7 @@
 package com.ares.car_rental_monolith.modules.customer.application.query;
 
+import com.ares.car_rental_monolith.shared.api.PageParams;
+
 // Filters + paging for the admin customer list. role is lower-case
 // (renter/host/both); status and kyc are the raw enum values. "all"/blank
 // becomes null = no filter.
@@ -12,20 +14,15 @@ public record ListCustomersQuery(
         int size
 ) {
 
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_SIZE = 20;
-    private static final int MAX_SIZE = 100;
-
     public static ListCustomersQuery from(
             String q, String role, String status, String kyc, Integer page, Integer size) {
-        int safePage = (page == null || page < 1) ? DEFAULT_PAGE : page;
-        int safeSize = (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+        PageParams pp = PageParams.normalize(page, size, 20, 100);
         return new ListCustomersQuery(
                 q == null ? "" : q.trim(),
                 normalizeRole(role),
                 normalizeFilter(status),
                 normalizeFilter(kyc),
-                safePage, safeSize
+                pp.page(), pp.size()
         );
     }
 

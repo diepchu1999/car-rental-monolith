@@ -5,11 +5,11 @@ import com.ares.car_rental_monolith.modules.fleet.application.query.SearchFleetV
 import com.ares.car_rental_monolith.modules.fleet.domain.BranchSummary;
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetVehicleSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,9 +42,7 @@ class FleetPersistenceAdapter implements LoadFleetPort {
                 .getResultList();
 
         List<FleetVehicleSummary> items = rows.stream().map(FleetPersistenceAdapter::toVehicle).toList();
-        int page = query.pageIndex() + 1;
-        int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / size);
-        return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
+        return PageResponse.ofPageIndex(items, total, query.pageIndex(), size);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,11 +55,11 @@ class FleetPersistenceAdapter implements LoadFleetPort {
 
     private static FleetVehicleSummary toVehicle(Tuple t) {
         return new FleetVehicleSummary(
-                uuid(t, "id"),
-                uuid(t, "vehicle_id"),
+                Tuples.uuid(t, "id"),
+                Tuples.uuid(t, "vehicle_id"),
                 t.get("asset_code", String.class),
                 t.get("asset_status", String.class),
-                uuid(t, "branch_id"),
+                Tuples.uuid(t, "branch_id"),
                 t.get("branch_name", String.class),
                 t.get("branch_city", String.class),
                 t.get("license_plate", String.class)
@@ -70,17 +68,11 @@ class FleetPersistenceAdapter implements LoadFleetPort {
 
     private static BranchSummary toBranch(Tuple t) {
         return new BranchSummary(
-                uuid(t, "id"),
+                Tuples.uuid(t, "id"),
                 t.get("code", String.class),
                 t.get("name", String.class),
                 t.get("city", String.class),
                 t.get("status", String.class)
         );
-    }
-
-    private static UUID uuid(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        return v instanceof UUID u ? u : UUID.fromString(v.toString());
     }
 }

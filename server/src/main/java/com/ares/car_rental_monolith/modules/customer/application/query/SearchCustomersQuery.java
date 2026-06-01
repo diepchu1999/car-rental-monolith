@@ -1,16 +1,13 @@
 package com.ares.car_rental_monolith.modules.customer.application.query;
 
+import com.ares.car_rental_monolith.shared.api.PageParams;
+
 public record SearchCustomersQuery(String q, int page, int size, boolean hostOnly) {
 
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_SIZE = 20;
-    private static final int MAX_SIZE = 50;
-
     public static SearchCustomersQuery from(String q, Integer page, Integer size, Boolean hostOnly) {
-        int safePage = (page == null || page < 1) ? DEFAULT_PAGE : page;
-        int safeSize = (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+        PageParams pp = PageParams.normalize(page, size, 20, 50);
         String normalized = q == null ? "" : q.trim();
-        return new SearchCustomersQuery(normalized, safePage, safeSize, Boolean.TRUE.equals(hostOnly));
+        return new SearchCustomersQuery(normalized, pp.page(), pp.size(), Boolean.TRUE.equals(hostOnly));
     }
 
     public int pageIndex() {

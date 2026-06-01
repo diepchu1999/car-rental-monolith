@@ -4,11 +4,11 @@ import com.ares.car_rental_monolith.modules.customer.application.port.out.Search
 import com.ares.car_rental_monolith.modules.customer.application.query.SearchCustomersQuery;
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 // Search by free-text q against name/phone/email/hostCode. ILIKE allows the
@@ -47,16 +47,12 @@ class CustomerSearchAdapter implements SearchCustomersPort {
 
         List<CustomerSummary> items = rows.stream().map(CustomerSearchAdapter::toSummary).toList();
 
-        int page = query.pageIndex() + 1;
-        int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / size);
-        return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
+        return PageResponse.ofPageIndex(items, total, query.pageIndex(), size);
     }
 
     private static CustomerSummary toSummary(Tuple t) {
-        Object idVal = t.get("id");
-        UUID id = idVal instanceof UUID u ? u : UUID.fromString(idVal.toString());
         return new CustomerSummary(
-                id,
+                Tuples.uuid(t, "id"),
                 t.get("full_name", String.class),
                 t.get("phone", String.class),
                 t.get("email", String.class),

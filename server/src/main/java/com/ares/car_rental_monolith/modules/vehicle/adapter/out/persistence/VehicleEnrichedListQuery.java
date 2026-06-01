@@ -8,16 +8,13 @@ import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleSource;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleStatus;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleTransmission;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,9 +47,7 @@ class VehicleEnrichedListQuery {
 
         List<VehicleListItem> items = rows.stream().map(VehicleEnrichedListQuery::toItem).toList();
 
-        int page = query.pageIndex() + 1;
-        int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / size);
-        return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
+        return PageResponse.ofPageIndex(items, total, query.pageIndex(), size);
     }
 
     private static Query bindFilters(Query q, PageVehiclesQuery query) {
@@ -80,11 +75,11 @@ class VehicleEnrichedListQuery {
 
     private static VehicleListItem toItem(Tuple t) {
         return new VehicleListItem(
-                uuid(t, "id"),
-                uuid(t, "owner_customer_id"),
+                Tuples.uuid(t, "id"),
+                Tuples.uuid(t, "owner_customer_id"),
                 t.get("owner_customer_name", String.class),
                 t.get("host_code", String.class),
-                uuid(t, "fleet_vehicle_id"),
+                Tuples.uuid(t, "fleet_vehicle_id"),
                 t.get("asset_code", String.class),
                 t.get("branch_name", String.class),
                 VehicleSource.valueOf(t.get("source", String.class)),
@@ -102,30 +97,11 @@ class VehicleEnrichedListQuery {
                 t.get("district", String.class),
                 t.get("base_daily_rate", BigDecimal.class),
                 t.get("cover_image_url", String.class),
-                toLong(t, "feature_count"),
-                toLong(t, "active_availability_block_count"),
-                toLong(t, "booking_count"),
-                toOffsetDateTime(t, "created_at"),
-                toOffsetDateTime(t, "updated_at")
+                Tuples.longValue(t.get("feature_count")),
+                Tuples.longValue(t.get("active_availability_block_count")),
+                Tuples.longValue(t.get("booking_count")),
+                Tuples.dateTime(t, "created_at"),
+                Tuples.dateTime(t, "updated_at")
         );
-    }
-
-    private static UUID uuid(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        return v instanceof UUID u ? u : UUID.fromString(v.toString());
-    }
-
-    private static long toLong(Tuple t, String col) {
-        Number n = (Number) t.get(col);
-        return n == null ? 0L : n.longValue();
-    }
-
-    private static OffsetDateTime toOffsetDateTime(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        if (v instanceof OffsetDateTime odt) return odt;
-        if (v instanceof Timestamp ts) return ts.toInstant().atOffset(ZoneOffset.UTC);
-        return null;
     }
 }

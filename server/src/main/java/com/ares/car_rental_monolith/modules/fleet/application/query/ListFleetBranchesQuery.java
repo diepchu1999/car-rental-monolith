@@ -1,23 +1,20 @@
 package com.ares.car_rental_monolith.modules.fleet.application.query;
 
+import com.ares.car_rental_monolith.shared.api.PageParams;
+
 public record ListFleetBranchesQuery(
         String q,
         String status,
         Integer page,
         Integer size) {
 
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_SIZE = 20;
-    private static final int MAX_SIZE = 100;
-
     public static ListFleetBranchesQuery from(
             String q, String status, Integer page, Integer size) {
-        int safePage = (page == null || page < 1) ? DEFAULT_PAGE : page;
-        int safeSize = (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+        PageParams pp = PageParams.normalize(page, size, 20, 100);
         return new ListFleetBranchesQuery(
                 q == null ? "" : q.trim(),
                 normalizeFilter(status),
-                safePage, safeSize
+                pp.page(), pp.size()
         );
     }
 

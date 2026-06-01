@@ -3,18 +3,12 @@ package com.ares.car_rental_monolith.modules.customer.adapter.out.persistence;
 import com.ares.car_rental_monolith.modules.customer.application.port.out.LoadCustomerPort;
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerDetail;
 import com.ares.car_rental_monolith.modules.customer.application.view.KycAggregateStatus;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,14 +69,14 @@ class CustomerLoadAdapter implements LoadCustomerPort {
 
         List<CustomerDetail.Kyc> kycs = loadKycs(id);
         return Optional.of(new CustomerDetail(
-                uuid(c, "id"),
+                Tuples.uuid(c, "id"),
                 c.get("full_name", String.class),
                 c.get("phone", String.class),
                 c.get("email", String.class),
-                localDate(c, "date_of_birth"),
+                Tuples.localDate(c, "date_of_birth"),
                 c.get("gender", String.class),
                 c.get("status", String.class),
-                dateTime(c, "created_at"),
+                Tuples.dateTime(c, "created_at"),
                 loadRoles(id),
                 loadHost(id),
                 kycs,
@@ -104,7 +98,7 @@ class CustomerLoadAdapter implements LoadCustomerPort {
             return Optional.empty();
         }
         Map<UUID, List<CustomerDetail.Kyc.Document>> docs =
-                loadDocuments(List.of(uuid(t, "id")));
+                loadDocuments(List.of(Tuples.uuid(t, "id")));
         return Optional.of(toKyc(t, docs));
     }
 
@@ -126,9 +120,9 @@ class CustomerLoadAdapter implements LoadCustomerPort {
                     t.get("display_name", String.class),
                     t.get("bio", String.class),
                     t.get("rating_average", BigDecimal.class),
-                    intValue(t.get("rating_count")),
+                    Tuples.intValue(t.get("rating_count")),
                     t.get("status", String.class),
-                    dateTime(t, "created_at")
+                    Tuples.dateTime(t, "created_at")
             );
         } catch (NoResultException ignored) {
             return null;
@@ -142,7 +136,7 @@ class CustomerLoadAdapter implements LoadCustomerPort {
                 .getResultList();
         if (rows.isEmpty()) return List.of();
 
-        List<UUID> ids = rows.stream().map(t -> uuid(t, "id")).toList();
+        List<UUID> ids = rows.stream().map(t -> Tuples.uuid(t, "id")).toList();
         Map<UUID, List<CustomerDetail.Kyc.Document>> docs = loadDocuments(ids);
         return rows.stream().map(t -> toKyc(t, docs)).toList();
     }
@@ -156,33 +150,33 @@ class CustomerLoadAdapter implements LoadCustomerPort {
         // LinkedHashMap để giữ thứ tự document_side đã ORDER BY ở SQL.
         Map<UUID, List<CustomerDetail.Kyc.Document>> grouped = new HashMap<>();
         for (Tuple t : rows) {
-            UUID profileId = uuid(t, "kyc_profile_id");
+            UUID profileId = Tuples.uuid(t, "kyc_profile_id");
             grouped.computeIfAbsent(profileId, k -> new ArrayList<>())
                     .add(new CustomerDetail.Kyc.Document(
-                            uuid(t, "id"),
+                            Tuples.uuid(t, "id"),
                             t.get("document_side", String.class),
                             t.get("file_url", String.class),
-                            dateTime(t, "created_at")
+                            Tuples.dateTime(t, "created_at")
                     ));
         }
         return grouped;
     }
 
     private CustomerDetail.Kyc toKyc(Tuple t, Map<UUID, List<CustomerDetail.Kyc.Document>> docs) {
-        UUID kycId = uuid(t, "id");
+        UUID kycId = Tuples.uuid(t, "id");
         return new CustomerDetail.Kyc(
                 kycId,
                 t.get("kyc_code", String.class),
                 t.get("legal_name", String.class),
                 t.get("document_type", String.class),
                 t.get("document_number", String.class),
-                localDate(t, "issued_date"),
+                Tuples.localDate(t, "issued_date"),
                 t.get("issued_place", String.class),
                 t.get("status", String.class),
-                uuid(t, "reviewed_by"),
-                dateTime(t, "reviewed_at"),
+                Tuples.uuid(t, "reviewed_by"),
+                Tuples.dateTime(t, "reviewed_at"),
                 t.get("rejection_reason", String.class),
-                dateTime(t, "created_at"),
+                Tuples.dateTime(t, "created_at"),
                 Collections.unmodifiableList(
                         docs.getOrDefault(kycId, List.of()))
         );
@@ -194,7 +188,7 @@ class CustomerLoadAdapter implements LoadCustomerPort {
                 .setParameter("id", id)
                 .getResultList();
         return rows.stream().map(t -> new CustomerDetail.Address(
-                uuid(t, "id"),
+                Tuples.uuid(t, "id"),
                 t.get("label", String.class),
                 t.get("line1", String.class),
                 t.get("province_code", String.class),
@@ -212,43 +206,10 @@ class CustomerLoadAdapter implements LoadCustomerPort {
                 .getSingleResult();
         BigDecimal revenue = t.get("total_revenue", BigDecimal.class);
         return new CustomerDetail.Activity(
-                longValue(t.get("booking_count")),
-                longValue(t.get("vehicle_count")),
+                Tuples.longValue(t.get("booking_count")),
+                Tuples.longValue(t.get("vehicle_count")),
                 revenue == null ? BigDecimal.ZERO : revenue
         );
     }
 
-    private static UUID uuid(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        return v instanceof UUID u ? u : UUID.fromString(v.toString());
-    }
-
-    private static OffsetDateTime dateTime(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        if (v instanceof OffsetDateTime odt) return odt;
-        // Hibernate 6 + pgjdbc trả TIMESTAMPTZ về Instant theo mặc định khi
-        // dùng native query qua Tuple → phải handle riêng, không thì sẽ null.
-        if (v instanceof Instant instant) return instant.atOffset(ZoneOffset.UTC);
-        if (v instanceof Timestamp ts) return ts.toInstant().atOffset(ZoneOffset.UTC);
-        if (v instanceof LocalDateTime ldt) return ldt.atOffset(ZoneOffset.UTC);
-        return null;
-    }
-
-    private static LocalDate localDate(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        if (v instanceof LocalDate ld) return ld;
-        if (v instanceof Date d) return d.toLocalDate();
-        return null;
-    }
-
-    private static int intValue(Object v) {
-        return v instanceof Number n ? n.intValue() : 0;
-    }
-
-    private static long longValue(Object v) {
-        return v instanceof Number n ? n.longValue() : 0L;
-    }
 }

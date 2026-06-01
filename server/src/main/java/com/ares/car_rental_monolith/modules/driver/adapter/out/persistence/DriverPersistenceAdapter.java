@@ -4,13 +4,12 @@ import com.ares.car_rental_monolith.modules.driver.application.port.out.LoadDriv
 import com.ares.car_rental_monolith.modules.driver.application.query.SearchDriversQuery;
 import com.ares.car_rental_monolith.modules.driver.domain.DriverSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,9 +45,7 @@ class DriverPersistenceAdapter implements LoadDriverPort {
                 .getResultList();
 
         List<DriverSummary> items = rows.stream().map(DriverPersistenceAdapter::toDomain).toList();
-        int page = query.pageIndex() + 1;
-        int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / size);
-        return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
+        return PageResponse.ofPageIndex(items, total, query.pageIndex(), size);
     }
 
     @Override
@@ -64,21 +61,14 @@ class DriverPersistenceAdapter implements LoadDriverPort {
     }
 
     private static DriverSummary toDomain(Tuple t) {
-        Object idVal = t.get("id");
-        UUID id = idVal instanceof UUID u ? u : UUID.fromString(idVal.toString());
-        Object expiryVal = t.get("license_expiry_date");
-        LocalDate expiry = expiryVal == null ? null
-                : expiryVal instanceof LocalDate ld ? ld
-                : expiryVal instanceof Date d ? d.toLocalDate()
-                : null;
         return new DriverSummary(
-                id,
+                Tuples.uuid(t, "id"),
                 t.get("driver_code", String.class),
                 t.get("full_name", String.class),
                 t.get("phone", String.class),
                 t.get("license_number", String.class),
                 t.get("license_class", String.class),
-                expiry,
+                Tuples.localDate(t, "license_expiry_date"),
                 t.get("years_of_experience", Integer.class),
                 t.get("rating_average", BigDecimal.class),
                 t.get("rating_count", Integer.class),

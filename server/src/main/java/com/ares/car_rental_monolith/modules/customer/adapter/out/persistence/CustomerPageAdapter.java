@@ -5,21 +5,16 @@ import com.ares.car_rental_monolith.modules.customer.application.query.ListCusto
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerDetail;
 import com.ares.car_rental_monolith.modules.customer.application.view.KycAggregateStatus;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 // Paged admin customer list. One COUNT + one DATA query, cùng dùng WHERE build
@@ -72,9 +67,7 @@ class CustomerPageAdapter implements PageCustomersPort {
         List<Tuple> rows = dataQuery.getResultList();
         List<CustomerDetail> items = rows.stream().map(CustomerPageAdapter::toDetail).toList();
 
-        int page = query.pageIndex() + 1;
-        int totalPages = total == 0 ? 1 : (int) Math.ceil((double) total / size);
-        return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
+        return PageResponse.ofPageIndex(items, total, query.pageIndex(), size);
     }
 
     private static String buildWhere(
@@ -118,14 +111,14 @@ class CustomerPageAdapter implements PageCustomersPort {
     private static CustomerDetail toDetail(Tuple t) {
         String aggregate = t.get("kyc_aggregate_status", String.class);
         return new CustomerDetail(
-                uuid(t, "id"),
+                Tuples.uuid(t, "id"),
                 t.get("full_name", String.class),
                 t.get("phone", String.class),
                 t.get("email", String.class),
-                localDate(t, "date_of_birth"),
+                Tuples.localDate(t, "date_of_birth"),
                 t.get("gender", String.class),
                 t.get("status", String.class),
-                dateTime(t, "created_at"),
+                Tuples.dateTime(t, "created_at"),
                 roles(t.get("roles", String.class)),
                 host(t),
                 // List page không nạp chi tiết KYC — FE dùng aggregate badge và
@@ -134,9 +127,9 @@ class CustomerPageAdapter implements PageCustomersPort {
                 KycAggregateStatus.valueOf(aggregate),
                 List.of(),
                 new CustomerDetail.Activity(
-                        longValue(t.get("booking_count")),
-                        longValue(t.get("vehicle_count")),
-                        bigDecimal(t.get("total_revenue")))
+                        Tuples.longValue(t.get("booking_count")),
+                        Tuples.longValue(t.get("vehicle_count")),
+                        Tuples.bigDecimal(t.get("total_revenue")))
         );
     }
 
@@ -153,45 +146,10 @@ class CustomerPageAdapter implements PageCustomersPort {
                 t.get("display_name", String.class),
                 t.get("bio", String.class),
                 t.get("rating_average", BigDecimal.class),
-                intValue(t.get("rating_count")),
+                Tuples.intValue(t.get("rating_count")),
                 t.get("host_status", String.class),
-                dateTime(t, "host_created_at")
+                Tuples.dateTime(t, "host_created_at")
         );
     }
 
-    private static UUID uuid(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        return v instanceof UUID u ? u : UUID.fromString(v.toString());
-    }
-
-    private static OffsetDateTime dateTime(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        if (v instanceof OffsetDateTime odt) return odt;
-        if (v instanceof Timestamp ts) return ts.toInstant().atOffset(ZoneOffset.UTC);
-        return null;
-    }
-
-    private static LocalDate localDate(Tuple t, String col) {
-        Object v = t.get(col);
-        if (v == null) return null;
-        if (v instanceof LocalDate ld) return ld;
-        if (v instanceof Date d) return d.toLocalDate();
-        return null;
-    }
-
-    private static int intValue(Object v) {
-        return v instanceof Number n ? n.intValue() : 0;
-    }
-
-    private static long longValue(Object v) {
-        return v instanceof Number n ? n.longValue() : 0L;
-    }
-
-    private static BigDecimal bigDecimal(Object v) {
-        if (v instanceof BigDecimal b) return b;
-        if (v instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
-        return BigDecimal.ZERO;
-    }
 }

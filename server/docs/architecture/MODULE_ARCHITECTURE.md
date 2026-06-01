@@ -125,7 +125,9 @@ Controller chỉ phụ thuộc `port/in` + DTO request/response. Service chỉ p
 3. Tạo migration Flyway `Vxxx__<module>.sql` (schema riêng cho module).
 4. Bỏ các layer không dùng (vd chưa có `api`, `cli`, `storage` thì xóa thư mục).
 5. Service & adapter để **package-private**.
-6. `mvn compile` để chắc wiring đúng.
+6. Tái dùng tiện ích chung ở mục 8 (`SqlLoader` + file `.sql`, `Tuples`,
+   `PageResponse.ofPageIndex`, `PageParams`) — không tự viết lại.
+7. `mvn compile` để chắc wiring đúng.
 
 ---
 
@@ -149,7 +151,7 @@ host profile) — xem các file `ChangeHostStatus*` trong `modules/customer/`.
 | 4 | `application/port/in` | `<Verb><X>UseCase.java` | Interface 1 phương thức `handle(command)`. Khai báo `@FunctionalInterface`. |
 | 5 | `application/view` *(nếu cần)* | `<X>Detail.java` | Thêm method `with<Field>(...)` trả về copy nếu cần biến đổi read model trước khi save. |
 | 6 | `application/port/out` *(nếu cần)* | `Write<X>Port.java` / `Load<X>Port.java` | Thêm phương thức nếu DB operation chưa tồn tại (vd `saveHostStatus`). **Bỏ qua** nếu tái dùng được port có sẵn. |
-| 7 | `adapter/out/persistence` *(nếu cần)* | `<X>WriteAdapter.java` / `<X>LoadAdapter.java` | Implement phương thức port out vừa thêm. JPA cho update đơn giản, native SQL nếu chưa có entity. |
+| 7 | `adapter/out/persistence` *(nếu cần)* | `<X>WriteAdapter.java` / `<X>LoadAdapter.java` | Implement phương thức port out vừa thêm. JPA cho update đơn giản; native SQL (SQL ở file `.sql` load qua `SqlLoader`, map `Tuple` bằng `shared.persistence.Tuples`, phân trang bằng `PageResponse.ofPageIndex`) nếu chưa có entity / join chéo schema. Xem mục 8. |
 | 8 | `application/service` | `<X>CommandService.java` / `<X>QueryService.java` | Thêm `implements <Verb><X>UseCase`. Implement `handle(command)`: load → validate domain → save → reload + return view. |
 | 9 | `adapter/in/rest` | `Admin<X>Controller.java` | Inject use case mới vào constructor. Thêm method `@PatchMapping`/`@PostMapping`/... gọi `command.from(...)` rồi `usecase.handle(...)`, bọc bằng `ApiResponse.success(...)`. |
 | 10 | **Verify** | terminal | `./mvnw -q -DskipTests compile`. Sau đó smoke test bằng `curl` hoặc trực tiếp trên FE. |
@@ -173,7 +175,20 @@ host profile) — xem các file `ChangeHostStatus*` trong `modules/customer/`.
 
 ---
 
-## 8. Tham chiếu
+## 8. Tiện ích dùng chung (`shared/`)
+
+Dùng các tiện ích này thay vì tự viết lại trong từng module — giữ pattern thống
+nhất, tránh lệch logic.
+
+| Tiện ích | Vị trí | Khi nào dùng |
+|---|---|---|
+| `SqlLoader` (interface) + `ClasspathSqlQueryLoader` | `shared/sql/` | Native SQL phải để ở file `resources/sql/<module>/*.sql`, **không** viết inline trong Java. Adapter inject `SqlLoader`, gọi `sql.load(<Module>SqlPaths.X)`. Mỗi module có 1 class `<Module>SqlPaths` (package-private) giữ hằng số path. Adapter vẫn tự execute + bind param + map. |
+| `Tuples` | `shared/persistence/` | Map giá trị cột từ native-query `Tuple`: `Tuples.uuid(t,"col")`, `dateTime`, `localDate`, `intValue/longValue/bigDecimal(t.get("col"))`. **Không** tự viết lại helper map trong adapter. |
+| `PageResponse.ofPageIndex(items, total, pageIndex, size)` | `shared/api/` | Build kết quả phân trang từ pageIndex 0-based — tự tính page/totalPages/hasNext/hasPrevious. Convention: rỗng → totalPages = 1. |
+| `PageParams.normalize(page, size, defaultSize, maxSize)` | `shared/api/` | Chuẩn hóa page/size trong `*Query.from(...)`. Mỗi endpoint tự truyền `defaultSize`/`maxSize` (giới hạn có chủ đích khác nhau). |
+| `ApiResponse` / `DomainException` / `ErrorCode` | `shared/api`, `shared/error` | Bọc response & ném lỗi nghiệp vụ (đã chuẩn, dùng như mẫu hiện có). |
+
+## 9. Tham chiếu
 
 - Module mẫu đầy đủ: `modules/vehicle` (CRUD + listing + ảnh + giá + phân trang).
 - Bộ khung copy nhanh: `docs/architecture/module-template/` (file `.java` mẫu, **không**

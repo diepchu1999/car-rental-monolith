@@ -5,6 +5,7 @@ import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleListingStatus;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleSource;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleStatus;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleTransmission;
+import com.ares.car_rental_monolith.shared.api.PageParams;
 import com.ares.car_rental_monolith.shared.error.DomainException;
 import java.math.BigDecimal;
 
@@ -26,10 +27,6 @@ public record PageVehiclesQuery(
         int page,
         int size
 ) {
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_SIZE = 20;
-    private static final int MAX_SIZE = 100;
-
     public static PageVehiclesQuery from(
             String q,
             String source,
@@ -48,8 +45,7 @@ public record PageVehiclesQuery(
             Integer page,
             Integer size
     ) {
-        int safePage = (page == null || page < 1) ? DEFAULT_PAGE : page;
-        int safeSize = (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+        PageParams pp = PageParams.normalize(page, size, 20, 100);
         if (seats != null && seats < 0) {
             throw DomainException.validation("Parameter 'seats' must be >= 0");
         }
@@ -71,8 +67,8 @@ public record PageVehiclesQuery(
                 hasBookings,
                 Enums.parseStrict(VehicleSortBy.class, "sortBy", sortBy),
                 Enums.parseStrict(SortDirection.class, "sortDir", sortDir),
-                safePage,
-                safeSize
+                pp.page(),
+                pp.size()
         );
     }
 

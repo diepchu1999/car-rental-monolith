@@ -6,14 +6,12 @@ import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleFuelType;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleSource;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleStatus;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleTransmission;
+import com.ares.car_rental_monolith.shared.persistence.Tuples;
 import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Tuple;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -198,23 +196,5 @@ class VehicleDetailQuery {
                 t.get("status", String.class),
                 Tuples.dateTime(t, "created_at")
         )).toList();
-    }
-
-    static final class Tuples {
-        private Tuples() {}
-
-        static UUID uuid(Tuple t, String col) {
-            Object v = t.get(col);
-            if (v == null) return null;
-            return v instanceof UUID u ? u : UUID.fromString(v.toString());
-        }
-
-        static OffsetDateTime dateTime(Tuple t, String col) {
-            Object v = t.get(col);
-            if (v == null) return null;
-            if (v instanceof OffsetDateTime odt) return odt;
-            if (v instanceof Timestamp ts) return ts.toInstant().atOffset(ZoneOffset.UTC);
-            return null;
-        }
     }
 }
