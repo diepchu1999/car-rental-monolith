@@ -5,6 +5,7 @@ import com.ares.car_rental_monolith.modules.fleet.application.query.ListFleetBra
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetBranchDetail;
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetBranchStatus;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import java.util.List;
@@ -14,35 +15,12 @@ import org.springframework.stereotype.Component;
 @Component
 class FleetBranchPagedAdapter implements LoadFleetBranchPort {
 
-    // Free-text khớp mã/tên/địa chỉ/thành phố/SĐT (ILIKE; phone có thể NULL nên
-    // COALESCE). Status nullable: CAST(... AS TEXT) IS NULL cho phép bỏ filter khi
-    // 'all' — Postgres không suy được kiểu của tham số NULL chưa bind nếu không cast.
-    private static final String BRANCH_WHERE = """
-            WHERE (:q = ''
-                OR br.code ILIKE CONCAT('%', :q, '%')
-                OR br.name ILIKE CONCAT('%', :q, '%')
-                OR br.address ILIKE CONCAT('%', :q, '%')
-                OR br.city ILIKE CONCAT('%', :q, '%')
-                OR COALESCE(br.phone, '') ILIKE CONCAT('%', :q, '%'))
-            AND (CAST(:status AS TEXT) IS NULL OR br.status = :status)
-            """;
-
-    private static final String BRANCH_COUNT_SQL = """
-            SELECT COUNT(*) FROM fleet.branches br
-            """ + BRANCH_WHERE;
-
-    private static final String BRANCH_DATA_SQL = """
-            SELECT br.id, br.code, br.name, br.address, br.city, br.phone, br.status
-            FROM fleet.branches br
-            """ + BRANCH_WHERE + """
-            ORDER BY br.created_at DESC, br.id ASC
-            LIMIT :lim OFFSET :off
-            """;
-
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    FleetBranchPagedAdapter(EntityManager em) {
+    FleetBranchPagedAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @SuppressWarnings("unchecked")
@@ -51,12 +29,12 @@ class FleetBranchPagedAdapter implements LoadFleetBranchPort {
         int size = query.size();
         int offset = query.pageIndex() * size;
 
-        long total = ((Number) em.createNativeQuery(BRANCH_COUNT_SQL)
+        long total = ((Number) em.createNativeQuery(sql.load(FleetSqlPaths.FLEET_BRANCHES_COUNT))
                 .setParameter("q", query.q())
                 .setParameter("status", query.status())
                 .getSingleResult()).longValue();
 
-        List<Tuple> rows = em.createNativeQuery(BRANCH_DATA_SQL, Tuple.class)
+        List<Tuple> rows = em.createNativeQuery(sql.load(FleetSqlPaths.FLEET_BRANCHES_DATA), Tuple.class)
                 .setParameter("q", query.q())
                 .setParameter("status", query.status())
                 .setParameter("lim", size)

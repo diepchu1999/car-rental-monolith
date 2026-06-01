@@ -57,7 +57,7 @@ class KycCommandService
 
         OffsetDateTime now = OffsetDateTime.now();
         UUID kycId = UUID.randomUUID();
-        String kycCode = "KYC-" + kycId.toString().substring(0, 8).toUpperCase();
+        String kycCode = writePort.nextKycCode();
 
         // Lưu file trước khi insert DB: nếu storage lỗi sẽ rollback transaction
         // mà không phát sinh row mồ côi. Ngược lại nếu insert DB fail sau khi

@@ -11,6 +11,14 @@ public interface WriteCustomerPort {
     // cho phép customer được tạo "rỗng" và nộp KYC sau.
     void create(CustomerDetail customer);
 
+    // Cấp 1 mã host duy nhất từ DB sequence (HOST-000001, ...). Tách khỏi
+    // create() để chỉ tốn 1 giá trị sequence khi admin không tự nhập host_code.
+    String nextHostCode();
+
+    // Cấp 1 mã KYC duy nhất từ DB sequence (KYC-000001, ...). Dùng chung cho
+    // luồng tạo customer kèm KYC và luồng nộp KYC độc lập.
+    String nextKycCode();
+
     void saveCustomerStatus(CustomerDetail customer);
 
     void saveHostStatus(CustomerDetail customer);

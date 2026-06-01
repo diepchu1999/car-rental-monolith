@@ -16,6 +16,7 @@ import com.ares.car_rental_monolith.modules.vehicle.application.port.out.WriteVe
 import com.ares.car_rental_monolith.modules.vehicle.domain.Vehicle;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleListing;
 import com.ares.car_rental_monolith.modules.vehicle.domain.VehicleListingStatus;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -30,19 +31,22 @@ class VehicleWriteAdapter implements WriteVehiclePort {
     private final VehicleImageJpaRepository imageRepo;
     private final VehicleFeatureJpaRepository featureRepo;
     private final EntityManager em;
+    private final SqlLoader sql;
 
     VehicleWriteAdapter(
             VehicleJpaRepository vehicleRepo,
             VehicleListingJpaRepository listingRepo,
             VehicleImageJpaRepository imageRepo,
             VehicleFeatureJpaRepository featureRepo,
-            EntityManager em
+            EntityManager em,
+            SqlLoader sql
     ) {
         this.vehicleRepo = vehicleRepo;
         this.listingRepo = listingRepo;
         this.imageRepo = imageRepo;
         this.featureRepo = featureRepo;
         this.em = em;
+        this.sql = sql;
     }
 
     @Override
@@ -83,8 +87,7 @@ class VehicleWriteAdapter implements WriteVehiclePort {
 
     @Override
     public boolean licensePlateExists(String licensePlate) {
-        Number count = (Number) em.createNativeQuery(
-                "SELECT COUNT(*) FROM vehicle.vehicles WHERE license_plate = :p")
+        Number count = (Number) em.createNativeQuery(sql.load(VehicleSqlPaths.LICENSE_PLATE_EXISTS))
                 .setParameter("p", licensePlate)
                 .getSingleResult();
         return count.longValue() > 0;
@@ -191,26 +194,12 @@ class VehicleWriteAdapter implements WriteVehiclePort {
     @Override
     public void upsertActivePricePlan(UpsertPricePlanCommand cmd) {
         OffsetDateTime now = OffsetDateTime.now();
-        em.createNativeQuery("""
-                UPDATE pricing.price_plans
-                SET status = 'INACTIVE', updated_at = :now
-                WHERE target_type = 'VEHICLE' AND target_id = :vid AND status = 'ACTIVE'
-                """)
+        em.createNativeQuery(sql.load(VehicleSqlPaths.DEACTIVATE_ACTIVE_PRICE_PLANS))
                 .setParameter("now", now)
                 .setParameter("vid", cmd.vehicleId())
                 .executeUpdate();
 
-        em.createNativeQuery("""
-                INSERT INTO pricing.price_plans (
-                    id, target_type, target_id, name, currency,
-                    base_daily_rate, hourly_rate, weekend_multiplier, deposit_amount,
-                    status, valid_from, created_at, updated_at
-                ) VALUES (
-                    :id, 'VEHICLE', :vid, :name, :currency,
-                    :baseDailyRate, :hourlyRate, :weekendMultiplier, :depositAmount,
-                    'ACTIVE', :now, :now, :now
-                )
-                """)
+        em.createNativeQuery(sql.load(VehicleSqlPaths.INSERT_PRICE_PLAN))
                 .setParameter("id", UUID.randomUUID())
                 .setParameter("vid", cmd.vehicleId())
                 .setParameter("name", cmd.name())

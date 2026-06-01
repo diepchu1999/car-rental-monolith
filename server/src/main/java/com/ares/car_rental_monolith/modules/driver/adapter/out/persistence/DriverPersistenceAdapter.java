@@ -4,6 +4,7 @@ import com.ares.car_rental_monolith.modules.driver.application.port.out.LoadDriv
 import com.ares.car_rental_monolith.modules.driver.application.query.SearchDriversQuery;
 import com.ares.car_rental_monolith.modules.driver.domain.DriverSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Tuple;
@@ -18,39 +19,12 @@ import org.springframework.stereotype.Component;
 @Component
 class DriverPersistenceAdapter implements LoadDriverPort {
 
-    private static final String WHERE = """
-            WHERE (:q = ''
-                OR full_name ILIKE CONCAT('%', :q, '%')
-                OR driver_code ILIKE CONCAT('%', :q, '%')
-                OR phone ILIKE CONCAT('%', :q, '%')
-                OR license_number ILIKE CONCAT('%', :q, '%'))
-            AND (CAST(:status AS TEXT) IS NULL OR status = :status)
-            """;
-
-    private static final String DATA_SQL = """
-            SELECT id, driver_code, full_name, phone, license_number, license_class,
-                   license_expiry_date, years_of_experience, rating_average,
-                   rating_count, status
-            FROM driver.drivers
-            """ + WHERE + """
-            ORDER BY full_name ASC
-            LIMIT :lim OFFSET :off
-            """;
-
-    private static final String COUNT_SQL = "SELECT COUNT(*) FROM driver.drivers " + WHERE;
-
-    private static final String DETAIL_SQL = """
-            SELECT id, driver_code, full_name, phone, license_number, license_class,
-                   license_expiry_date, years_of_experience, rating_average,
-                   rating_count, status
-            FROM driver.drivers
-            WHERE id = :id
-            """;
-
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    DriverPersistenceAdapter(EntityManager em) {
+    DriverPersistenceAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @SuppressWarnings("unchecked")
@@ -59,12 +33,12 @@ class DriverPersistenceAdapter implements LoadDriverPort {
         int size = query.size();
         int offset = query.pageIndex() * size;
 
-        long total = ((Number) em.createNativeQuery(COUNT_SQL)
+        long total = ((Number) em.createNativeQuery(sql.load(DriverSqlPaths.DRIVERS_COUNT))
                 .setParameter("q", query.q())
                 .setParameter("status", query.status())
                 .getSingleResult()).longValue();
 
-        List<Tuple> rows = em.createNativeQuery(DATA_SQL, Tuple.class)
+        List<Tuple> rows = em.createNativeQuery(sql.load(DriverSqlPaths.DRIVERS_DATA), Tuple.class)
                 .setParameter("q", query.q())
                 .setParameter("status", query.status())
                 .setParameter("lim", size)
@@ -80,7 +54,7 @@ class DriverPersistenceAdapter implements LoadDriverPort {
     @Override
     public Optional<DriverSummary> findById(UUID id) {
         try {
-            Tuple t = (Tuple) em.createNativeQuery(DETAIL_SQL, Tuple.class)
+            Tuple t = (Tuple) em.createNativeQuery(sql.load(DriverSqlPaths.DRIVER_DETAIL), Tuple.class)
                     .setParameter("id", id)
                     .getSingleResult();
             return Optional.of(toDomain(t));

@@ -5,6 +5,7 @@ import com.ares.car_rental_monolith.modules.fleet.application.query.SearchFleetV
 import com.ares.car_rental_monolith.modules.fleet.domain.BranchSummary;
 import com.ares.car_rental_monolith.modules.fleet.domain.FleetVehicleSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import java.util.List;
@@ -14,41 +15,12 @@ import org.springframework.stereotype.Component;
 @Component
 class FleetPersistenceAdapter implements LoadFleetPort {
 
-    private static final String VEHICLE_WHERE = """
-            WHERE (:q = ''
-                OR cv.asset_code ILIKE CONCAT('%', :q, '%')
-                OR COALESCE(v.license_plate, '') ILIKE CONCAT('%', :q, '%'))
-            AND (CAST(:branchId AS UUID) IS NULL OR cv.branch_id = :branchId)
-            """;
-
-    private static final String VEHICLE_DATA_SQL = """
-            SELECT cv.id, cv.vehicle_id, cv.asset_code, cv.asset_status,
-                   br.id AS branch_id, br.name AS branch_name, br.city AS branch_city,
-                   v.license_plate
-            FROM fleet.company_vehicles cv
-            LEFT JOIN fleet.branches br ON br.id = cv.branch_id
-            LEFT JOIN vehicle.vehicles v ON v.id = cv.vehicle_id
-            """ + VEHICLE_WHERE + """
-            ORDER BY cv.asset_code ASC
-            LIMIT :lim OFFSET :off
-            """;
-
-    private static final String VEHICLE_COUNT_SQL = """
-            SELECT COUNT(*) FROM fleet.company_vehicles cv
-            LEFT JOIN vehicle.vehicles v ON v.id = cv.vehicle_id
-            """ + VEHICLE_WHERE;
-
-    private static final String BRANCHES_SQL = """
-            SELECT id, code, name, city, status
-            FROM fleet.branches
-            WHERE status = 'ACTIVE'
-            ORDER BY name ASC
-            """;
-
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    FleetPersistenceAdapter(EntityManager em) {
+    FleetPersistenceAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @SuppressWarnings("unchecked")
@@ -57,12 +29,12 @@ class FleetPersistenceAdapter implements LoadFleetPort {
         int size = query.size();
         int offset = query.pageIndex() * size;
 
-        long total = ((Number) em.createNativeQuery(VEHICLE_COUNT_SQL)
+        long total = ((Number) em.createNativeQuery(sql.load(FleetSqlPaths.SEARCH_FLEET_VEHICLES_COUNT))
                 .setParameter("q", query.q())
                 .setParameter("branchId", query.branchId())
                 .getSingleResult()).longValue();
 
-        List<Tuple> rows = em.createNativeQuery(VEHICLE_DATA_SQL, Tuple.class)
+        List<Tuple> rows = em.createNativeQuery(sql.load(FleetSqlPaths.SEARCH_FLEET_VEHICLES_DATA), Tuple.class)
                 .setParameter("q", query.q())
                 .setParameter("branchId", query.branchId())
                 .setParameter("lim", size)
@@ -78,7 +50,8 @@ class FleetPersistenceAdapter implements LoadFleetPort {
     @SuppressWarnings("unchecked")
     @Override
     public List<BranchSummary> listActiveBranches() {
-        List<Tuple> rows = em.createNativeQuery(BRANCHES_SQL, Tuple.class).getResultList();
+        List<Tuple> rows = em.createNativeQuery(sql.load(FleetSqlPaths.LIST_ACTIVE_BRANCHES), Tuple.class)
+                .getResultList();
         return rows.stream().map(FleetPersistenceAdapter::toBranch).toList();
     }
 

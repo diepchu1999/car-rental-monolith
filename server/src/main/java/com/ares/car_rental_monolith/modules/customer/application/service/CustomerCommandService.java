@@ -133,7 +133,7 @@ class CustomerCommandService implements
     }
 
     private CustomerDetail.HostProfile buildHost(CreateCustomerCommand.Host host, OffsetDateTime now) {
-        String hostCode = host.hostCode() != null ? host.hostCode() : generateHostCode();
+        String hostCode = host.hostCode() != null ? host.hostCode() : writePort.nextHostCode();
         return new CustomerDetail.HostProfile(
                 hostCode, host.displayName(), host.bio(),
                 BigDecimal.ZERO, 0, "ACTIVE", now
@@ -142,7 +142,7 @@ class CustomerCommandService implements
 
     private CustomerDetail.Kyc buildKyc(CreateCustomerCommand.Kyc kyc, OffsetDateTime now) {
         UUID kycId = UUID.randomUUID();
-        String kycCode = "KYC-" + kycId.toString().substring(0, 8).toUpperCase();
+        String kycCode = writePort.nextKycCode();
         return new CustomerDetail.Kyc(
                 kycId,
                 kycCode,
@@ -187,9 +187,5 @@ class CustomerCommandService implements
                 province.name(), commune.name(),
                 null, true
         );
-    }
-
-    private static String generateHostCode() {
-        return "HOST-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }

@@ -5,6 +5,7 @@ import com.ares.car_rental_monolith.modules.customer.application.query.ListCusto
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerDetail;
 import com.ares.car_rental_monolith.modules.customer.application.view.KycAggregateStatus;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
@@ -29,61 +30,30 @@ import org.springframework.stereotype.Component;
 @Component
 class CustomerPageAdapter implements PageCustomersPort {
 
-    // Aggregate KYC counts inline; alias `ka` được dùng cả ở SELECT (CASE) và
-    // WHERE (filter theo aggregate status).
-    private static final String JOINS = """
-            FROM customer.customers c
-            LEFT JOIN customer.host_profiles hp ON hp.customer_id = c.id
-            LEFT JOIN LATERAL (
-                SELECT
-                    COUNT(*) AS total,
-                    COUNT(*) FILTER (WHERE status = 'APPROVED') AS approved,
-                    COUNT(*) FILTER (WHERE status = 'REJECTED') AS rejected,
-                    COUNT(*) FILTER (WHERE status IN ('PENDING', 'EXPIRED')) AS pending
-                FROM customer.kyc_profiles
-                WHERE customer_id = c.id
-            ) ka ON TRUE
-            """;
-
-    // Aggregate status được derive bằng CASE; phải khớp KycAggregateStatus enum.
-    private static final String KYC_AGGREGATE_CASE = """
-            CASE
-                WHEN ka.total = 0 THEN 'NO_KYC'
-                WHEN ka.approved = ka.total THEN 'FULLY_APPROVED'
-                WHEN ka.rejected = ka.total THEN 'REJECTED'
-                WHEN ka.approved > 0 THEN 'PARTIALLY_APPROVED'
-                ELSE 'PENDING'
-            END
-            """;
-
-    private static final String DATA_SELECT = """
-            SELECT
-                c.id, c.full_name, c.phone, c.email, c.date_of_birth, c.gender,
-                c.status, c.created_at,
-                (SELECT string_agg(cr.role, ',' ORDER BY cr.role)
-                 FROM customer.customer_roles cr WHERE cr.customer_id = c.id) AS roles,
-                hp.host_code, hp.display_name, hp.bio, hp.rating_average,
-                hp.rating_count, hp.status AS host_status, hp.created_at AS host_created_at,
-            """ + KYC_AGGREGATE_CASE + """
-                AS kyc_aggregate_status,
-                (SELECT COUNT(*) FROM booking.bookings b WHERE b.customer_id = c.id) AS booking_count,
-                (SELECT COUNT(*) FROM vehicle.vehicles v WHERE v.owner_customer_id = c.id) AS vehicle_count,
-                (SELECT COALESCE(SUM(b.total_amount), 0) FROM booking.bookings b
-                 WHERE b.host_customer_id = c.id AND b.status = 'COMPLETED') AS total_revenue
-            """;
-
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    CustomerPageAdapter(EntityManager em) {
+    CustomerPageAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @Override
     public PageResponse<CustomerDetail> page(ListCustomersQuery query) {
-        Map<String, Object> params = new LinkedHashMap<>();
-        String where = buildWhere(query, params);
+        // alias `ka` (joins) + CASE (kyc aggregate) dùng chung ở SELECT và WHERE.
+        // CASE tải từ 1 file duy nhất (kyc_aggregate_case.sql) để khớp enum
+        // KycAggregateStatus ở 1 nơi. Data select = head + case + tail.
+        String joins = sql.load(CustomerSqlPaths.PAGE_CUSTOMERS_JOINS);
+        String kycCase = sql.load(CustomerSqlPaths.KYC_AGGREGATE_CASE);
+        String dataSelect = sql.load(CustomerSqlPaths.PAGE_CUSTOMERS_SELECT_HEAD)
+                + kycCase
+                + sql.load(CustomerSqlPaths.PAGE_CUSTOMERS_SELECT_TAIL);
 
-        Query countQuery = em.createNativeQuery("SELECT COUNT(*) " + JOINS + where);
+        String qFilter = sql.load(CustomerSqlPaths.PAGE_CUSTOMERS_Q_FILTER);
+        Map<String, Object> params = new LinkedHashMap<>();
+        String where = buildWhere(query, params, kycCase, qFilter);
+
+        Query countQuery = em.createNativeQuery("SELECT COUNT(*) " + joins + where);
         params.forEach(countQuery::setParameter);
         long total = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -91,7 +61,7 @@ class CustomerPageAdapter implements PageCustomersPort {
         int offset = query.pageIndex() * size;
 
         Query dataQuery = em.createNativeQuery(
-                DATA_SELECT + JOINS + where
+                dataSelect + joins + where
                         + " ORDER BY c.created_at DESC, c.id ASC LIMIT :lim OFFSET :off",
                 Tuple.class);
         params.forEach(dataQuery::setParameter);
@@ -107,16 +77,12 @@ class CustomerPageAdapter implements PageCustomersPort {
         return PageResponse.of(items, total, page, size, totalPages, page < totalPages, page > 1);
     }
 
-    private static String buildWhere(ListCustomersQuery q, Map<String, Object> params) {
+    private static String buildWhere(
+            ListCustomersQuery q, Map<String, Object> params, String kycCase, String qFilter) {
         StringBuilder where = new StringBuilder(" WHERE 1 = 1");
 
         if (q.q() != null && !q.q().isEmpty()) {
-            where.append("""
-                     AND (c.full_name ILIKE :q
-                          OR COALESCE(c.phone, '') ILIKE :q
-                          OR COALESCE(c.email, '') ILIKE :q
-                          OR COALESCE(hp.host_code, '') ILIKE :q)
-                    """);
+            where.append(qFilter);
             params.put("q", "%" + q.q() + "%");
         }
 
@@ -137,7 +103,7 @@ class CustomerPageAdapter implements PageCustomersPort {
         if (q.kyc() != null) {
             // Filter theo aggregate KYC status, dùng cùng CASE expression ở
             // SELECT. Postgres không cho dùng alias trong WHERE nên inline.
-            where.append(" AND ").append(KYC_AGGREGATE_CASE).append(" = :kyc");
+            where.append(" AND ").append(kycCase).append(" = :kyc");
             params.put("kyc", q.kyc());
         }
 

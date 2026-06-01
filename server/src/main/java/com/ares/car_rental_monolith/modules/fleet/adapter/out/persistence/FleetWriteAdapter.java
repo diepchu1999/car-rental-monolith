@@ -1,6 +1,7 @@
 package com.ares.car_rental_monolith.modules.fleet.adapter.out.persistence;
 
 import com.ares.car_rental_monolith.modules.fleet.application.port.out.WriteFleetPort;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -10,15 +11,16 @@ import org.springframework.stereotype.Component;
 class FleetWriteAdapter implements WriteFleetPort {
 
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    FleetWriteAdapter(EntityManager em) {
+    FleetWriteAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @Override
     public boolean assetCodeExists(String assetCode) {
-        Number count = (Number) em.createNativeQuery(
-                "SELECT COUNT(*) FROM fleet.company_vehicles WHERE asset_code = :code")
+        Number count = (Number) em.createNativeQuery(sql.load(FleetSqlPaths.ASSET_CODE_EXISTS))
                 .setParameter("code", assetCode)
                 .getSingleResult();
         return count.longValue() > 0;
@@ -26,8 +28,7 @@ class FleetWriteAdapter implements WriteFleetPort {
 
     @Override
     public boolean branchExists(UUID branchId) {
-        Number count = (Number) em.createNativeQuery(
-                "SELECT COUNT(*) FROM fleet.branches WHERE id = :id")
+        Number count = (Number) em.createNativeQuery(sql.load(FleetSqlPaths.BRANCH_EXISTS))
                 .setParameter("id", branchId)
                 .getSingleResult();
         return count.longValue() > 0;
@@ -36,15 +37,7 @@ class FleetWriteAdapter implements WriteFleetPort {
     @Override
     public void insertCompanyVehicle(UUID id, UUID vehicleId, String assetCode, UUID branchId) {
         OffsetDateTime now = OffsetDateTime.now();
-        em.createNativeQuery("""
-                INSERT INTO fleet.company_vehicles (
-                    id, vehicle_id, branch_id, asset_code,
-                    current_odometer_km, asset_status, created_at, updated_at
-                ) VALUES (
-                    :id, :vehicleId, :branchId, :assetCode,
-                    0, 'AVAILABLE', :now, :now
-                )
-                """)
+        em.createNativeQuery(sql.load(FleetSqlPaths.INSERT_COMPANY_VEHICLE))
                 .setParameter("id", id)
                 .setParameter("vehicleId", vehicleId)
                 .setParameter("branchId", branchId)

@@ -4,6 +4,7 @@ import com.ares.car_rental_monolith.modules.customer.application.port.out.Search
 import com.ares.car_rental_monolith.modules.customer.application.query.SearchCustomersQuery;
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerSummary;
 import com.ares.car_rental_monolith.shared.api.PageResponse;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import java.util.List;
@@ -14,38 +15,16 @@ import org.springframework.stereotype.Component;
 // pg_trgm extension to back this with a GIN index (see V031). The hostCode
 // match resolves to the host_profiles table. Mặc định trả cả renter lẫn host;
 // khi hostOnly=true thì chỉ trả active host (dùng cho vehicle owner picker, nơi
-// chủ xe HOST_OWNED bắt buộc là host).
+// chủ xe HOST_OWNED bắt buộc là host). SQL ở sql/customer/*.sql (CustomerSqlPaths).
 @Component
 class CustomerSearchAdapter implements SearchCustomersPort {
 
-    private static final String WHERE = """
-            WHERE (:q = ''
-                OR c.full_name ILIKE CONCAT('%', :q, '%')
-                OR COALESCE(c.phone, '') ILIKE CONCAT('%', :q, '%')
-                OR COALESCE(c.email, '') ILIKE CONCAT('%', :q, '%')
-                OR COALESCE(hp.host_code, '') ILIKE CONCAT('%', :q, '%'))
-            AND (:hostOnly = FALSE OR hp.status = 'ACTIVE')
-            """;
-
-    private static final String DATA_SQL = """
-            SELECT c.id, c.full_name, c.phone, c.email, c.status, hp.host_code
-            FROM customer.customers c
-            LEFT JOIN customer.host_profiles hp ON hp.customer_id = c.id
-            """ + WHERE + """
-            ORDER BY c.created_at DESC, c.id ASC
-            LIMIT :lim OFFSET :off
-            """;
-
-    private static final String COUNT_SQL = """
-            SELECT COUNT(*)
-            FROM customer.customers c
-            LEFT JOIN customer.host_profiles hp ON hp.customer_id = c.id
-            """ + WHERE;
-
     private final EntityManager em;
+    private final SqlLoader sql;
 
-    CustomerSearchAdapter(EntityManager em) {
+    CustomerSearchAdapter(EntityManager em, SqlLoader sql) {
         this.em = em;
+        this.sql = sql;
     }
 
     @SuppressWarnings("unchecked")
@@ -54,12 +33,12 @@ class CustomerSearchAdapter implements SearchCustomersPort {
         int size = query.size();
         int offset = query.pageIndex() * size;
 
-        long total = ((Number) em.createNativeQuery(COUNT_SQL)
+        long total = ((Number) em.createNativeQuery(sql.load(CustomerSqlPaths.SEARCH_CUSTOMERS_COUNT))
                 .setParameter("q", query.q())
                 .setParameter("hostOnly", query.hostOnly())
                 .getSingleResult()).longValue();
 
-        List<Tuple> rows = em.createNativeQuery(DATA_SQL, Tuple.class)
+        List<Tuple> rows = em.createNativeQuery(sql.load(CustomerSqlPaths.SEARCH_CUSTOMERS_DATA), Tuple.class)
                 .setParameter("q", query.q())
                 .setParameter("hostOnly", query.hostOnly())
                 .setParameter("lim", size)

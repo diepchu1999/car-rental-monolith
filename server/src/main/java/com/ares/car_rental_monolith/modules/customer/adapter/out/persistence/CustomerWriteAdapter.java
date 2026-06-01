@@ -4,6 +4,7 @@ import com.ares.car_rental_monolith.modules.customer.adapter.out.persistence.ent
 import com.ares.car_rental_monolith.modules.customer.adapter.out.persistence.repository.CustomerJpaRepository;
 import com.ares.car_rental_monolith.modules.customer.application.port.out.WriteCustomerPort;
 import com.ares.car_rental_monolith.modules.customer.application.view.CustomerDetail;
+import com.ares.car_rental_monolith.shared.sql.SqlLoader;
 import jakarta.persistence.EntityManager;
 
 import java.time.OffsetDateTime;
@@ -14,15 +15,19 @@ import org.springframework.stereotype.Component;
 // Native-SQL writes, đồng bộ phần còn lại của customer module. Insert chạy
 // trong transaction của service gọi vào. Nullable params dùng CAST(:p AS ...)
 // để driver bind SQL NULL không bị Hibernate infer type sai.
+// SQL text nằm ở file .sql (xem CustomerSqlPaths); adapter chỉ load qua
+// SqlLoader rồi execute + bind + map — đúng trách nhiệm của adapter.
 @Component
 class CustomerWriteAdapter implements WriteCustomerPort {
 
     private final EntityManager em;
     private final CustomerJpaRepository customerJpaRepository;
+    private final SqlLoader sql;
 
-    CustomerWriteAdapter(EntityManager em, CustomerJpaRepository customerJpaRepository) {
+    CustomerWriteAdapter(EntityManager em, CustomerJpaRepository customerJpaRepository, SqlLoader sql) {
         this.em = em;
         this.customerJpaRepository = customerJpaRepository;
+        this.sql = sql;
     }
 
     @Override
@@ -45,6 +50,20 @@ class CustomerWriteAdapter implements WriteCustomerPort {
     }
 
     @Override
+    public String nextHostCode() {
+        long n = ((Number) em.createNativeQuery(sql.load(CustomerSqlPaths.NEXT_HOST_CODE))
+                .getSingleResult()).longValue();
+        return String.format("HOST-%06d", n);
+    }
+
+    @Override
+    public String nextKycCode() {
+        long n = ((Number) em.createNativeQuery(sql.load(CustomerSqlPaths.NEXT_KYC_CODE))
+                .getSingleResult()).longValue();
+        return String.format("KYC-%06d", n);
+    }
+
+    @Override
     public void saveCustomerStatus(CustomerDetail customer) {
         CustomerJpaEntity entity = customerJpaRepository.findById(customer.id())
                 .orElseThrow(() -> new IllegalStateException(
@@ -57,11 +76,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
     @Override
     public void saveHostStatus(CustomerDetail customer) {
         OffsetDateTime now = OffsetDateTime.now();
-        int updated = em.createNativeQuery("""
-                        UPDATE customer.host_profiles
-                        SET status = :status, updated_at = :now
-                        WHERE customer_id = :cid
-                        """)
+        int updated = em.createNativeQuery(sql.load(CustomerSqlPaths.UPDATE_HOST_STATUS))
                 .setParameter("status", customer.hostProfile().status())
                 .setParameter("now", now)
                 .setParameter("cid", customer.id())
@@ -77,16 +92,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
         OffsetDateTime now = OffsetDateTime.now();
         // UPDATE thẳng — không load entity rồi setter rồi save, tránh 1 round
         // trip thừa và không kéo state ngoài columns mình thực sự đổi.
-        int updated = em.createNativeQuery("""
-                        UPDATE customer.customers
-                        SET full_name = :fullName,
-                            phone = CAST(:phone AS varchar),
-                            email = CAST(:email AS varchar),
-                            date_of_birth = CAST(:dob AS date),
-                            gender = CAST(:gender AS varchar),
-                            updated_at = :now
-                        WHERE id = :id
-                        """)
+        int updated = em.createNativeQuery(sql.load(CustomerSqlPaths.UPDATE_CUSTOMER_BASICS))
                 .setParameter("fullName", customer.fullName())
                 .setParameter("phone", customer.phone())
                 .setParameter("email", customer.email())
@@ -103,15 +109,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
 
     @Override
     public int approveKyc(UUID kycId, UUID reviewedBy, OffsetDateTime now) {
-        return em.createNativeQuery("""
-                        UPDATE customer.kyc_profiles
-                        SET status = 'APPROVED',
-                            reviewed_by = :reviewedBy,
-                            reviewed_at = :now,
-                            rejection_reason = NULL,
-                            updated_at = :now
-                        WHERE id = :kycId
-                        """)
+        return em.createNativeQuery(sql.load(CustomerSqlPaths.APPROVE_KYC))
                 .setParameter("reviewedBy", reviewedBy)
                 .setParameter("now", now)
                 .setParameter("kycId", kycId)
@@ -131,13 +129,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
 
     private void insertKycDocument(UUID kycId, CustomerDetail.Kyc.Document doc, OffsetDateTime now) {
         UUID id = doc.id() != null ? doc.id() : UUID.randomUUID();
-        em.createNativeQuery("""
-                        INSERT INTO customer.kyc_documents (
-                            id, kyc_profile_id, document_side, file_url, created_at
-                        ) VALUES (
-                            :id, :kycId, :side, :fileUrl, :now
-                        )
-                        """)
+        em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_KYC_DOCUMENT))
                 .setParameter("id", id)
                 .setParameter("kycId", kycId)
                 .setParameter("side", doc.documentSide())
@@ -148,15 +140,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
 
     @Override
     public int rejectKyc(UUID kycId, UUID reviewedBy, String rejectionReason, OffsetDateTime now) {
-        return em.createNativeQuery("""
-                        UPDATE customer.kyc_profiles
-                        SET status = 'REJECTED',
-                            reviewed_by = :reviewedBy,
-                            reviewed_at = :now,
-                            rejection_reason = :reason,
-                            updated_at = :now
-                        WHERE id = :kycId
-                        """)
+        return em.createNativeQuery(sql.load(CustomerSqlPaths.REJECT_KYC))
                 .setParameter("reviewedBy", reviewedBy)
                 .setParameter("now", now)
                 .setParameter("reason", rejectionReason)
@@ -165,15 +149,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
     }
 
     private void insertCustomer(CustomerDetail c, OffsetDateTime now) {
-        em.createNativeQuery("""
-                        INSERT INTO customer.customers (
-                            id, user_id, full_name, phone, email, date_of_birth, gender,
-                            status, created_at, updated_at
-                        ) VALUES (
-                            :id, :userId, :fullName, CAST(:phone AS varchar), CAST(:email AS varchar),
-                            CAST(:dob AS date), CAST(:gender AS varchar), :status, :now, :now
-                        )
-                        """)
+        em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_CUSTOMER))
                 .setParameter("id", c.id())
                 .setParameter("userId", UUID.randomUUID())
                 .setParameter("fullName", c.fullName())
@@ -188,10 +164,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
 
     private void insertRoles(CustomerDetail c, OffsetDateTime now) {
         for (String role : c.roles()) {
-            em.createNativeQuery("""
-                            INSERT INTO customer.customer_roles (customer_id, role, created_at)
-                            VALUES (:cid, :role, :now)
-                            """)
+            em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_CUSTOMER_ROLE))
                     .setParameter("cid", c.id())
                     .setParameter("role", role)
                     .setParameter("now", now)
@@ -200,15 +173,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
     }
 
     private void insertHostProfile(UUID customerId, CustomerDetail.HostProfile host, OffsetDateTime now) {
-        em.createNativeQuery("""
-                        INSERT INTO customer.host_profiles (
-                            id, customer_id, host_code, display_name, bio,
-                            rating_average, rating_count, status, created_at, updated_at
-                        ) VALUES (
-                            :id, :cid, :hostCode, :displayName, CAST(:bio AS text),
-                            :ratingAverage, :ratingCount, :status, :now, :now
-                        )
-                        """)
+        em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_HOST_PROFILE))
                 .setParameter("id", UUID.randomUUID())
                 .setParameter("cid", customerId)
                 .setParameter("hostCode", host.hostCode())
@@ -223,18 +188,8 @@ class CustomerWriteAdapter implements WriteCustomerPort {
 
     private void insertKyc(UUID customerId, CustomerDetail.Kyc kyc, OffsetDateTime now) {
         UUID kycId = kyc.id() != null ? kyc.id() : UUID.randomUUID();
-        String kycCode = kyc.kycCode() != null
-                ? kyc.kycCode()
-                : "KYC-" + kycId.toString().substring(0, 8).toUpperCase();
-        em.createNativeQuery("""
-                        INSERT INTO customer.kyc_profiles (
-                            id, customer_id, kyc_code, legal_name, document_type, document_number,
-                            issued_date, issued_place, status, created_at, updated_at
-                        ) VALUES (
-                            :id, :cid, :kycCode, :legalName, :documentType, :documentNumber,
-                            CAST(:issuedDate AS date), CAST(:issuedPlace AS varchar), :status, :now, :now
-                        )
-                        """)
+        String kycCode = kyc.kycCode() != null ? kyc.kycCode() : nextKycCode();
+        em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_KYC_PROFILE))
                 .setParameter("id", kycId)
                 .setParameter("cid", customerId)
                 .setParameter("kycCode", kycCode)
@@ -249,16 +204,7 @@ class CustomerWriteAdapter implements WriteCustomerPort {
     }
 
     private void insertAddress(UUID customerId, CustomerDetail.Address address, OffsetDateTime now) {
-        em.createNativeQuery("""
-                        INSERT INTO customer.addresses (
-                            id, customer_id, label, line1, ward, district, city, country,
-                            province_code, commune_code, is_default, created_at
-                        ) VALUES (
-                            :id, :cid, CAST(:label AS varchar), :line1, CAST(:ward AS varchar),
-                            CAST(:district AS varchar), :city, :country,
-                            CAST(:provinceCode AS varchar), CAST(:communeCode AS varchar), :isDefault, :now
-                        )
-                        """)
+        em.createNativeQuery(sql.load(CustomerSqlPaths.INSERT_ADDRESS))
                 .setParameter("id", address.id())
                 .setParameter("cid", customerId)
                 .setParameter("label", address.label())
